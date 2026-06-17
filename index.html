@@ -25,7 +25,7 @@
             </button>
         </div>
 
-        <!-- Location Tabs -->
+        <!-- Location -->
         <div class="flex gap-x-2 mb-6">
             <button onclick="switchLocation('House of Woof')" id="tab-House of Woof"
                     class="px-6 py-3 rounded-2xl font-semibold flex items-center gap-x-2 bg-emerald-600 text-white">
@@ -37,10 +37,18 @@
             </button>
         </div>
 
-        <!-- Meal Period -->
+        <!-- Date + Meal Period -->
         <div class="mb-6">
-            <div class="text-sm text-zinc-400 mb-2 px-1 font-medium">CURRENT MEAL PERIOD</div>
-            <div class="grid grid-cols-3 gap-3" id="meal-selector"></div>
+            <div class="flex items-end gap-x-4 mb-3">
+                <div>
+                    <div class="text-sm text-zinc-400 mb-1 px-1">DATE</div>
+                    <input type="date" id="log-date" value="" 
+                           class="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-sm">
+                </div>
+            </div>
+
+            <div class="text-sm text-zinc-400 mb-2 px-1 font-medium">MEAL PERIOD</div>
+            <div class="grid grid-cols-3 gap-2" id="meal-selector"></div>
         </div>
 
         <!-- Currently Checked In -->
@@ -74,13 +82,11 @@
             </div>
 
             <div class="space-y-5">
-                <!-- Amount -->
                 <div>
                     <div class="text-sm text-zinc-400 mb-2">How much did they eat?</div>
                     <div class="grid grid-cols-4 gap-2" id="quick-amount-buttons"></div>
                 </div>
 
-                <!-- Fresh Food -->
                 <div class="flex items-center justify-between bg-zinc-800 rounded-2xl p-4">
                     <div class="font-semibold">Ate Fresh Food?</div>
                     <input type="checkbox" id="fresh-food-toggle" class="w-6 h-6 accent-teal-600">
@@ -103,6 +109,10 @@
         let currentLocation = "House of Woof";
         let currentMealPeriod = "Breakfast";
 
+        function getTodayDate() {
+            return new Date().toISOString().split('T')[0];
+        }
+
         function loadData() {
             dogs = JSON.parse(localStorage.getItem('pawfeed_v4') || '[]');
         }
@@ -121,8 +131,8 @@
             meals.forEach(meal => {
                 const active = currentMealPeriod === meal.name;
                 const btn = document.createElement('button');
-                btn.className = `py-4 rounded-3xl flex flex-col items-center justify-center text-lg font-bold ${active ? `bg-${meal.color}-500 text-white` : 'bg-zinc-800 text-zinc-300 border border-zinc-600'}`;
-                btn.innerHTML = `<i class="fa-solid ${meal.icon} text-2xl"></i><span>${meal.name}</span>`;
+                btn.className = `py-3 text-sm rounded-2xl flex flex-col items-center justify-center font-bold ${active ? `bg-${meal.color}-500 text-white` : 'bg-zinc-800 text-zinc-300 border border-zinc-600'}`;
+                btn.innerHTML = `<i class="fa-solid ${meal.icon}"></i><span class="text-xs mt-0.5">${meal.name}</span>`;
                 btn.onclick = () => {
                     currentMealPeriod = meal.name;
                     renderMealSelector();
@@ -158,6 +168,7 @@
                     id: 'g-' + r.animal.id,
                     name: r.animal.name,
                     breed: r.animal.breed || 'Unknown',
+                    owner_last_name: r.owner?.last_name || '',
                     location: location,
                     gingr_id: r.animal.id,
                     logs: []
@@ -196,7 +207,7 @@
 
                 let previewHTML = '';
                 if (lastLog) {
-                    const notePreview = lastLog.notes ? lastLog.notes.substring(0, 60) + (lastLog.notes.length > 60 ? '...' : '') : '';
+                    const notePreview = lastLog.notes ? lastLog.notes.substring(0, 50) + (lastLog.notes.length > 50 ? '...' : '') : '';
                     previewHTML = `
                         <div class="mt-3 text-sm space-y-0.5">
                             <div><span class="font-semibold">Ate:</span> ${lastLog.amountEaten}</div>
@@ -211,16 +222,17 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
-                            <div>
-                                <span class="font-bold text-xl">${dog.name}</span>
-                                <span class="text-emerald-400 text-sm ml-2">${dog.breed}</span>
-                            </div>
+                            <div class="font-bold text-xl">${dog.name} ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}</div>
+                            <div class="text-emerald-400 text-sm">${dog.breed}</div>
                         </div>
                         <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" 
                                 class="px-5 py-2 bg-emerald-600 rounded-2xl text-sm font-bold">LOG</button>
                     </div>
                     ${previewHTML}
-                    <div id="history-${dog.id}" class="hidden mt-4 pt-4 border-t border-zinc-700 text-sm space-y-1"></div>
+                    <div class="text-right mt-2">
+                        <span class="text-[10px] italic text-zinc-500">click to see history</span>
+                    </div>
+                    <div id="history-${dog.id}" class="hidden mt-3 pt-3 border-t border-zinc-700 text-sm space-y-1"></div>
                 `;
                 container.appendChild(card);
             });
@@ -242,7 +254,7 @@
                     <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
                         <div>
                             <span class="font-semibold">${dog.name}</span>
-                            <span class="text-emerald-400 text-sm ml-2">${dog.breed}</span>
+                            ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}
                         </div>
                         ${lastLog ? `<div class="text-xs text-zinc-400">Last: ${lastLog.amountEaten} ${lastLog.fresh ? '🌱' : ''}</div>` : ''}
                     </div>
@@ -276,35 +288,33 @@
             document.getElementById('modal-dog-breed').textContent = dog.breed || '';
             document.getElementById('log-modal').dataset.dogId = dogId;
 
-            // Clear previous values
-            document.getElementById('log-notes').value = '';
-            document.getElementById('fresh-food-toggle').checked = false;
-            document.getElementById('quick-amount-buttons').dataset.selectedAmount = '';
+            // Pre-fill with today's latest log if exists
+            const today = document.getElementById('log-date').value;
+            const todayLog = dog.logs?.find(l => l.date === today);
 
-            // Reset amount buttons
             const amountContainer = document.getElementById('quick-amount-buttons');
-            Array.from(amountContainer.children).forEach(b => b.classList.remove('!bg-emerald-600', '!border-emerald-500'));
+            amountContainer.innerHTML = '';
+            ['All', 'Half', 'Some', 'None'].forEach(amount => {
+                const btn = document.createElement('button');
+                btn.className = `py-3 rounded-2xl text-sm font-bold border border-zinc-600 bg-zinc-800`;
+                btn.textContent = amount;
+                if (todayLog && todayLog.amountEaten === amount) {
+                    btn.classList.add('!bg-emerald-600', '!border-emerald-500');
+                    amountContainer.dataset.selectedAmount = amount;
+                }
+                btn.onclick = () => {
+                    Array.from(amountContainer.children).forEach(b => b.classList.remove('!bg-emerald-600', '!border-emerald-500'));
+                    btn.classList.add('!bg-emerald-600', '!border-emerald-500');
+                    amountContainer.dataset.selectedAmount = amount;
+                };
+                amountContainer.appendChild(btn);
+            });
+
+            document.getElementById('fresh-food-toggle').checked = todayLog ? todayLog.fresh : false;
+            document.getElementById('log-notes').value = todayLog ? (todayLog.notes || '') : '';
 
             document.getElementById('log-modal').classList.remove('hidden');
             document.getElementById('log-modal').classList.add('flex');
-
-            renderAmountButtons();
-        }
-
-        function renderAmountButtons() {
-            const container = document.getElementById('quick-amount-buttons');
-            container.innerHTML = '';
-            ['All', 'Half', 'Some', 'None'].forEach(amount => {
-                const btn = document.createElement('button');
-                btn.className = `py-3 rounded-2xl text-sm font-bold border border-zinc-600 bg-zinc-800 active:bg-zinc-700`;
-                btn.textContent = amount;
-                btn.onclick = () => {
-                    Array.from(container.children).forEach(b => b.classList.remove('!bg-emerald-600', '!border-emerald-500'));
-                    btn.classList.add('!bg-emerald-600', '!border-emerald-500');
-                    container.dataset.selectedAmount = amount;
-                };
-                container.appendChild(btn);
-            });
         }
 
         function closeLogModal() {
@@ -317,13 +327,19 @@
             const dog = dogs.find(d => d.id === dogId);
             if (!dog) return;
 
-            const container = document.getElementById('quick-amount-buttons');
-            const amount = container.dataset.selectedAmount || 'Some';
+            const amountContainer = document.getElementById('quick-amount-buttons');
+            const amount = amountContainer.dataset.selectedAmount || 'Some';
             const fresh = document.getElementById('fresh-food-toggle').checked;
             const notes = document.getElementById('log-notes').value.trim();
+            const date = document.getElementById('log-date').value;
 
             if (!dog.logs) dog.logs = [];
+
+            // Remove today's existing log if it exists
+            dog.logs = dog.logs.filter(l => l.date !== date);
+
             dog.logs.push({
+                date: date,
                 timestamp: new Date().toISOString(),
                 mealPeriod: currentMealPeriod,
                 amountEaten: amount,
@@ -339,8 +355,17 @@
 
         function initialize() {
             loadData();
+
+            // Set default date to today
+            const dateInput = document.getElementById('log-date');
+            dateInput.value = getTodayDate();
+
             renderMealSelector();
             switchLocation('House of Woof');
+        }
+
+        function getTodayDate() {
+            return new Date().toISOString().split('T')[0];
         }
 
         window.onload = initialize;

@@ -21,7 +21,6 @@
                     <i class="fa-solid fa-chevron-down text-xl text-emerald-400"></i>
                 </div>
                 
-                <!-- Facility Dropdown -->
                 <div id="facility-dropdown" class="hidden absolute mt-2 w-56 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-xl z-50">
                     <div onclick="switchLocation('House of Woof')" class="px-4 py-3 hover:bg-zinc-800 rounded-t-2xl cursor-pointer flex items-center gap-x-2">
                         <i class="fa-solid fa-home text-emerald-400"></i>
@@ -34,14 +33,22 @@
                 </div>
             </div>
 
-            <button onclick="refreshFromGingr()" 
-                    class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-2xl text-sm flex items-center gap-x-2">
-                <i class="fa-solid fa-sync"></i>
-                <span>Refresh from Gingr</span>
-            </button>
+            <div class="flex items-center gap-x-2">
+                <button onclick="exportCSV()" 
+                        class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-2xl text-sm flex items-center gap-x-2">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Export</span>
+                </button>
+                
+                <button onclick="refreshFromGingr()" 
+                        class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-2xl text-sm flex items-center gap-x-2">
+                    <i class="fa-solid fa-sync"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
         </div>
 
-        <!-- Date + Meal Period (compact) -->
+        <!-- Date + Meal Period -->
         <div class="mb-6 flex items-end gap-x-4">
             <div>
                 <div class="text-sm text-zinc-400 mb-1 px-1">DATE</div>
@@ -227,24 +234,20 @@
                 }
 
                 const card = document.createElement('div');
-                card.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4';
+                card.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4 cursor-pointer';
+                card.onclick = () => quickLog(dog.id);
+                
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
-                        <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
+                        <div>
                             <div>
                                 <span class="font-bold text-lg">${dog.name}</span>
                                 ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}
                             </div>
                             <div class="text-emerald-400 text-sm">${dog.breed}</div>
                         </div>
-                        <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" 
-                                class="px-4 py-1.5 bg-emerald-600 rounded-2xl text-xs font-bold">LOG</button>
                     </div>
                     ${previewHTML}
-                    <div onclick="toggleHistory(this, '${dog.id}')" class="text-right mt-1 cursor-pointer">
-                        <span class="text-[10px] italic text-zinc-500">click to see history</span>
-                    </div>
-                    <div id="history-${dog.id}" class="hidden mt-2 pt-2 border-t border-zinc-700 text-sm space-y-1"></div>
                 `;
                 container.appendChild(card);
             });
@@ -261,35 +264,20 @@
             filtered.forEach(dog => {
                 const lastLog = dog.logs && dog.logs.length > 0 ? dog.logs[dog.logs.length - 1] : null;
                 const row = document.createElement('div');
-                row.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4 flex justify-between items-center';
+                row.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4 flex justify-between items-center cursor-pointer';
+                row.onclick = () => quickLog(dog.id);
+                
                 row.innerHTML = `
-                    <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
+                    <div>
                         <div>
                             <span class="font-semibold">${dog.name}</span>
                             ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}
                         </div>
                         ${lastLog ? `<div class="text-xs text-zinc-400">Last: ${lastLog.amountEaten} ${lastLog.fresh ? '🌱' : ''}</div>` : ''}
                     </div>
-                    <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" class="px-5 py-2 bg-emerald-600 rounded-2xl text-sm font-bold">LOG</button>
                 `;
                 container.appendChild(row);
             });
-        }
-
-        function toggleHistory(element, dogId) {
-            const div = document.getElementById('history-' + dogId);
-            if (!div) return;
-            if (!div.classList.contains('hidden')) { div.classList.add('hidden'); return; }
-
-            const dog = dogs.find(d => d.id === dogId);
-            if (!dog || !dog.logs || dog.logs.length === 0) {
-                div.innerHTML = `<div class="text-zinc-400 text-sm">No history yet.</div>`;
-            } else {
-                div.innerHTML = dog.logs.slice().reverse().map(log => 
-                    `<div class="bg-zinc-800 px-3 py-1.5 rounded-2xl text-sm">${log.mealPeriod} • ${log.amountEaten} ${log.fresh ? '🌱 Fresh' : ''}</div>`
-                ).join('');
-            }
-            div.classList.remove('hidden');
         }
 
         function quickLog(dogId) {
@@ -362,6 +350,48 @@
             renderAllDogs();
         }
 
+        function exportCSV() {
+            const date = document.getElementById('log-date').value;
+            const meal = currentMealPeriod;
+
+            const filteredLogs = [];
+
+            dogs.forEach(dog => {
+                const log = dog.logs?.find(l => l.date === date && l.mealPeriod === meal);
+                if (log) {
+                    filteredLogs.push({
+                        Date: date,
+                        Meal: meal,
+                        Dog: dog.name,
+                        Owner: dog.owner_last_name || '',
+                        Breed: dog.breed,
+                        Ate: log.amountEaten,
+                        FreshFood: log.fresh ? 'Yes' : 'No',
+                        Notes: log.notes || ''
+                    });
+                }
+            });
+
+            if (filteredLogs.length === 0) {
+                alert("No logs found for this date and meal period.");
+                return;
+            }
+
+            const headers = Object.keys(filteredLogs[0]);
+            let csv = headers.join(',') + '\n';
+
+            filteredLogs.forEach(row => {
+                csv += headers.map(h => `"${row[h] || ''}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pawfeed-${date}-${meal}.csv`;
+            a.click();
+        }
+
         function initialize() {
             loadData();
 
@@ -371,10 +401,6 @@
             renderMealSelector();
             updateFacilityTitle();
             switchLocation('House of Woof');
-        }
-
-        function getTodayDate() {
-            return new Date().toISOString().split('T')[0];
         }
 
         window.onload = initialize;

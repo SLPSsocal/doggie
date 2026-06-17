@@ -373,29 +373,36 @@
             const today = document.getElementById('log-date').value;
             const todayLog = dog.logs?.find(l => l.date === today);
 
-            // Render 2x2 amount buttons with clear selected state
             const amountContainer = document.getElementById('quick-amount-buttons');
             amountContainer.innerHTML = '';
+
             ['All', 'Half', 'Some', 'None'].forEach(amount => {
                 const btn = document.createElement('button');
-                btn.className = `py-3 text-sm rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700 transition-colors`;
-                btn.textContent = amount;
                 
+                // Base classes
+                btn.className = 'py-3 text-sm rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700 transition-colors';
+                btn.textContent = amount;
+
+                // Pre-select if already logged today
                 if (todayLog && todayLog.amountEaten === amount) {
-                    // Clear selected style
-                    btn.className = `py-3 text-sm rounded-2xl border border-emerald-500 bg-emerald-600 text-white font-semibold`;
+                    btn.classList.remove('bg-zinc-800', 'border-zinc-600');
+                    btn.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white', 'font-semibold');
                     amountContainer.dataset.selectedAmount = amount;
                 }
-                
+
                 btn.onclick = () => {
-                    // Deselect all
+                    // Deselect all buttons
                     Array.from(amountContainer.children).forEach(b => {
-                        b.className = `py-3 text-sm rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700 transition-colors`;
+                        b.classList.remove('bg-emerald-600', 'border-emerald-500', 'text-white', 'font-semibold');
+                        b.classList.add('bg-zinc-800', 'border-zinc-600');
                     });
-                    // Select this one
-                    btn.className = `py-3 text-sm rounded-2xl border border-emerald-500 bg-emerald-600 text-white font-semibold`;
+
+                    // Select this button
+                    btn.classList.remove('bg-zinc-800', 'border-zinc-600');
+                    btn.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white', 'font-semibold');
                     amountContainer.dataset.selectedAmount = amount;
                 };
+
                 amountContainer.appendChild(btn);
             });
 

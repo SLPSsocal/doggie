@@ -372,9 +372,13 @@
 
             let html = `<h3 class="text-xl font-semibold mb-4">${dog.name} - History</h3>`;
             dog.logs.slice().reverse().forEach(log => {
+                const dateObj = new Date(log.date);
+                const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
                 html += `
                     <div class="bg-zinc-800 px-3 py-2 rounded-2xl mb-2 text-sm">
-                        <div>${log.date} • ${log.mealPeriod} • ${log.amountEaten}</div>
+                        <div>${dayName}, ${formattedDate} • ${log.mealPeriod} • ${log.amountEaten}</div>
                         ${log.fresh ? '<div class="text-emerald-400 text-xs mt-0.5">🌱 Fresh Food</div>' : ''}
                     </div>
                 `;

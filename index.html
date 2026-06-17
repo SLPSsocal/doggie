@@ -189,11 +189,13 @@
                 });
                 const data = await res.json();
                 const list = data.data || data;
+
                 return Object.values(list).map(r => ({
                     id: 'g-' + r.animal.id,
                     name: r.animal.name,
                     breed: r.animal.breed || 'Unknown',
-                    owner_last_name: r.owner?.last_name || '',
+                    owner_last_name: r.owner?.last_name || r.owner_name || '',
+                    gingr_pet_id: r.animal.id,
                     location: location,
                     gingr_id: r.animal.id,
                     logs: []
@@ -263,6 +265,7 @@
         function exportCSV() {
             const date = document.getElementById('log-date').value;
             const meal = currentMealPeriod;
+            const config = GINGR_CONFIG[currentLocation];
 
             const rows = [];
 
@@ -272,12 +275,16 @@
                 const log = dog.logs?.find(l => l.date === date && l.mealPeriod === meal);
                 if (!log) return;
 
+                const gingrUrl = `https://${config.subdomain}.gingrapp.com/admin/animals/${dog.gingr_pet_id}`;
+
                 rows.push({
                     Date: date,
                     Meal: meal,
                     Dog: dog.name,
                     Owner: dog.owner_last_name || '',
                     Breed: dog.breed || '',
+                    GingrPetID: dog.gingr_pet_id,
+                    GingrProfile: gingrUrl,
                     Ate: log.amountEaten,
                     FreshFood: log.fresh ? 'Yes' : 'No'
                 });

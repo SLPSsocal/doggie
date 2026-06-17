@@ -132,6 +132,17 @@
             localStorage.setItem('pawfeed_v4', JSON.stringify(dogs));
         }
 
+        function getMealCardClasses() {
+            if (currentMealPeriod === 'Breakfast') {
+                return 'bg-orange-950 border-orange-800';
+            } else if (currentMealPeriod === 'Lunch') {
+                return 'bg-sky-950 border-sky-800';
+            } else if (currentMealPeriod === 'Dinner') {
+                return 'bg-violet-950 border-violet-800';
+            }
+            return 'bg-zinc-900 border-zinc-700';
+        }
+
         function renderMealSelector() {
             const container = document.getElementById('meal-selector');
             container.innerHTML = '';
@@ -212,12 +223,14 @@
                 return;
             }
 
+            const cardSkin = getMealCardClasses();
+
             filtered.forEach(dog => {
                 const today = document.getElementById('log-date').value;
                 const todayLog = dog.logs?.find(l => l.date === today);
 
                 const card = document.createElement('div');
-                card.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4';
+                card.className = `${cardSkin} rounded-3xl p-4`;
 
                 let lastLogHTML = '';
                 if (todayLog) {
@@ -229,7 +242,6 @@
                     `;
                 }
 
-                // Build amount buttons with pre-selection (smaller)
                 let amountButtonsHTML = '';
                 ['All', 'Half', 'Some', 'None'].forEach(amount => {
                     const isSelected = todayLog && todayLog.amountEaten === amount;
@@ -252,9 +264,7 @@
                         <div class="text-emerald-400 text-sm mb-3">${dog.breed}</div>
                     </div>
 
-                    <!-- Quick Logging - 2x2 + Fresh on right -->
                     <div class="flex gap-4 mb-3">
-                        <!-- Amount Buttons 2x2 (smaller) -->
                         <div class="flex-1">
                             <div class="text-xs text-zinc-400 mb-1">How much did they eat?</div>
                             <div class="grid grid-cols-2 gap-1.5">
@@ -262,7 +272,6 @@
                             </div>
                         </div>
 
-                        <!-- Fresh Food on the right -->
                         <div class="flex flex-col justify-center">
                             <div class="text-sm text-zinc-300 mb-1">Fresh Food?</div>
                             <input type="checkbox" onchange="quickLogFresh('${dog.id}', this.checked)" class="w-6 h-6 accent-teal-600" ${freshChecked}>

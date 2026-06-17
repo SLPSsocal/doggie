@@ -225,7 +225,6 @@
             dogs.forEach(dog => {
                 if (dog.location !== currentLocation) return;
 
-                // Check if already has a log for today + meal
                 const hasLog = dog.logs?.some(l => l.date === today && l.mealPeriod === meal);
                 if (hasLog) return;
 
@@ -234,7 +233,6 @@
                 let amount = 'All';
                 let fresh = true;
 
-                // Special case: Annie only ate Some
                 if (dog.name.toLowerCase().includes('annie')) {
                     amount = 'Some';
                     fresh = false;
@@ -256,10 +254,60 @@
                 saveData();
                 renderCurrentDogs();
                 renderAllDogs();
-                alert(`Seeded test logs for ${seededCount} dog(s). Annie = Some (no fresh). All others = All + Fresh.`);
+                alert(`Seeded test logs for ${seededCount} dog(s). Annie = Some (no fresh). Others = All + Fresh.`);
             } else {
                 alert('All dogs already have logs for today + current meal.');
             }
+        }
+
+        function exportCSV() {
+            const date = document.getElementById('log-date').value;
+            const meal = currentMealPeriod;
+
+            const rows = [];
+
+            dogs.forEach(dog => {
+                if (dog.location !== currentLocation) return;
+
+                const log = dog.logs?.find(l => l.date === date && l.mealPeriod === meal);
+                if (!log) return;
+
+                rows.push({
+                    Date: date,
+                    Meal: meal,
+                    Dog: dog.name,
+                    Owner: dog.owner_last_name || '',
+                    Breed: dog.breed || '',
+                    Ate: log.amountEaten,
+                    FreshFood: log.fresh ? 'Yes' : 'No'
+                });
+            });
+
+            if (rows.length === 0) {
+                alert("No logs found for this date and meal period.");
+                return;
+            }
+
+            const headers = Object.keys(rows[0]);
+            let csvContent = headers.join(',') + '\n';
+
+            rows.forEach(row => {
+                const values = headers.map(header => {
+                    const val = row[header] || '';
+                    return `"${val}"`;
+                });
+                csvContent += values.join(',') + '\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = `PawFeed_${currentLocation.replace(/\s+/g, '')}_${date}_${meal}.csv`;
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function renderCurrentDogs() {

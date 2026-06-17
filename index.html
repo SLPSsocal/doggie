@@ -363,7 +363,12 @@
 
             let html = `<h3 class="text-xl font-semibold mb-4">${dog.name} - History</h3>`;
             dog.logs.slice().reverse().forEach(log => {
-                html += `<div class="bg-zinc-800 p-3 rounded-2xl mb-2 text-sm">${log.mealPeriod} • ${log.amountEaten} ${log.fresh ? '🌱 Fresh' : ''}</div>`;
+                html += `
+                    <div class="bg-zinc-800 px-3 py-2 rounded-2xl mb-2 text-sm">
+                        <div>${log.date} • ${log.mealPeriod} • ${log.amountEaten}</div>
+                        ${log.fresh ? '<div class="text-emerald-400 text-xs mt-0.5">🌱 Fresh Food</div>' : ''}
+                    </div>
+                `;
             });
 
             const modal = document.createElement('div');

@@ -32,6 +32,10 @@
             </div>
 
             <div class="flex items-center gap-x-2">
+                <button onclick="seedTestData()" class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-2xl text-xs flex items-center gap-x-2">
+                    <i class="fa-solid fa-flask"></i>
+                    <span>Seed Test Data</span>
+                </button>
                 <button onclick="exportCSV()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-2xl text-sm flex items-center gap-x-2">
                     <i class="fa-solid fa-download"></i>
                     <span>Export</span>
@@ -210,6 +214,52 @@
             saveData();
             renderCurrentDogs();
             renderAllDogs();
+        }
+
+        function seedTestData() {
+            const today = document.getElementById('log-date').value;
+            const meal = currentMealPeriod;
+
+            let seededCount = 0;
+
+            dogs.forEach(dog => {
+                if (dog.location !== currentLocation) return;
+
+                // Check if already has a log for today + meal
+                const hasLog = dog.logs?.some(l => l.date === today && l.mealPeriod === meal);
+                if (hasLog) return;
+
+                if (!dog.logs) dog.logs = [];
+
+                let amount = 'All';
+                let fresh = true;
+
+                // Special case: Annie only ate Some
+                if (dog.name.toLowerCase().includes('annie')) {
+                    amount = 'Some';
+                    fresh = false;
+                }
+
+                dog.logs.push({
+                    date: today,
+                    timestamp: new Date().toISOString(),
+                    mealPeriod: meal,
+                    amountEaten: amount,
+                    fresh: fresh,
+                    notes: ''
+                });
+
+                seededCount++;
+            });
+
+            if (seededCount > 0) {
+                saveData();
+                renderCurrentDogs();
+                renderAllDogs();
+                alert(`Seeded test logs for ${seededCount} dog(s). Annie = Some (no fresh). All others = All + Fresh.`);
+            } else {
+                alert('All dogs already have logs for today + current meal.');
+            }
         }
 
         function renderCurrentDogs() {

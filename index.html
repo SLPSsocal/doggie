@@ -213,20 +213,38 @@
             }
 
             filtered.forEach(dog => {
-                const lastLog = dog.logs && dog.logs.length > 0 ? dog.logs[dog.logs.length - 1] : null;
+                const today = document.getElementById('log-date').value;
+                const todayLog = dog.logs?.find(l => l.date === today);
 
                 const card = document.createElement('div');
                 card.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4';
 
                 let lastLogHTML = '';
-                if (lastLog) {
+                if (todayLog) {
                     lastLogHTML = `
                         <div class="mt-2 text-sm">
-                            <div><span class="font-semibold">Ate:</span> ${lastLog.amountEaten}</div>
-                            <div>Fresh Food: ${lastLog.fresh ? '✅' : '❌'}</div>
+                            <div><span class="font-semibold">Ate:</span> ${todayLog.amountEaten}</div>
+                            <div>Fresh Food: ${todayLog.fresh ? '✅' : '❌'}</div>
                         </div>
                     `;
                 }
+
+                // Build amount buttons with pre-selection
+                let amountButtonsHTML = '';
+                ['All', 'Half', 'Some', 'None'].forEach(amount => {
+                    const isSelected = todayLog && todayLog.amountEaten === amount;
+                    const selectedClass = isSelected 
+                        ? 'bg-emerald-600 border-emerald-500 text-white font-semibold' 
+                        : 'bg-zinc-800 border-zinc-600';
+                    amountButtonsHTML += `
+                        <button onclick="quickLogAmount('${dog.id}', '${amount}', this)" 
+                                class="py-2 text-xs rounded-2xl border ${selectedClass} active:bg-zinc-700">
+                            ${amount}
+                        </button>
+                    `;
+                });
+
+                const freshChecked = todayLog && todayLog.fresh ? 'checked' : '';
 
                 card.innerHTML = `
                     <div class="mb-3">
@@ -240,17 +258,14 @@
                         <div class="flex-1">
                             <div class="text-xs text-zinc-400 mb-1">How much did they eat?</div>
                             <div class="grid grid-cols-2 gap-1.5">
-                                <button onclick="quickLogAmount('${dog.id}', 'All', this)" class="py-2 text-xs rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700">All</button>
-                                <button onclick="quickLogAmount('${dog.id}', 'Half', this)" class="py-2 text-xs rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700">Half</button>
-                                <button onclick="quickLogAmount('${dog.id}', 'Some', this)" class="py-2 text-xs rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700">Some</button>
-                                <button onclick="quickLogAmount('${dog.id}', 'None', this)" class="py-2 text-xs rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700">None</button>
+                                ${amountButtonsHTML}
                             </div>
                         </div>
 
                         <!-- Fresh Food on the right -->
                         <div class="flex flex-col justify-center">
                             <div class="text-sm text-zinc-300 mb-1">Fresh?</div>
-                            <input type="checkbox" onchange="quickLogFresh('${dog.id}', this.checked)" class="w-6 h-6 accent-teal-600">
+                            <input type="checkbox" onchange="quickLogFresh('${dog.id}', this.checked)" class="w-6 h-6 accent-teal-600" ${freshChecked}>
                         </div>
                     </div>
 
@@ -376,7 +391,6 @@
             const amountContainer = document.getElementById('quick-amount-buttons');
             amountContainer.innerHTML = '';
 
-            // Create buttons first
             ['All', 'Half', 'Some', 'None'].forEach(amount => {
                 const btn = document.createElement('button');
                 btn.className = 'py-3 text-sm rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700 transition-colors';
@@ -384,7 +398,6 @@
                 amountContainer.appendChild(btn);
             });
 
-            // Apply selected state AFTER buttons exist in DOM (more reliable)
             if (todayLog && todayLog.amountEaten) {
                 const matchingButton = Array.from(amountContainer.children).find(b => b.textContent === todayLog.amountEaten);
                 if (matchingButton) {
@@ -394,7 +407,6 @@
                 }
             }
 
-            // Attach click handlers
             Array.from(amountContainer.children).forEach(btn => {
                 btn.onclick = () => {
                     Array.from(amountContainer.children).forEach(b => {

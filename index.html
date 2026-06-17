@@ -378,32 +378,33 @@
 
             ['All', 'Half', 'Some', 'None'].forEach(amount => {
                 const btn = document.createElement('button');
-                
-                // Base classes
                 btn.className = 'py-3 text-sm rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700 transition-colors';
                 btn.textContent = amount;
 
-                // Pre-select if already logged today
-                if (todayLog && todayLog.amountEaten === amount) {
-                    btn.classList.remove('bg-zinc-800', 'border-zinc-600');
-                    btn.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white', 'font-semibold');
-                    amountContainer.dataset.selectedAmount = amount;
-                }
+                amountContainer.appendChild(btn);
+            });
 
+            // Now apply pre-selection if exists (more reliable)
+            if (todayLog) {
+                const selectedBtn = Array.from(amountContainer.children).find(b => b.textContent === todayLog.amountEaten);
+                if (selectedBtn) {
+                    selectedBtn.classList.remove('bg-zinc-800', 'border-zinc-600');
+                    selectedBtn.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white', 'font-semibold');
+                    amountContainer.dataset.selectedAmount = todayLog.amountEaten;
+                }
+            }
+
+            // Add click handlers
+            Array.from(amountContainer.children).forEach(btn => {
                 btn.onclick = () => {
-                    // Deselect all buttons
                     Array.from(amountContainer.children).forEach(b => {
                         b.classList.remove('bg-emerald-600', 'border-emerald-500', 'text-white', 'font-semibold');
                         b.classList.add('bg-zinc-800', 'border-zinc-600');
                     });
-
-                    // Select this button
                     btn.classList.remove('bg-zinc-800', 'border-zinc-600');
                     btn.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white', 'font-semibold');
-                    amountContainer.dataset.selectedAmount = amount;
+                    amountContainer.dataset.selectedAmount = btn.textContent;
                 };
-
-                amountContainer.appendChild(btn);
             });
 
             document.getElementById('fresh-food-toggle').checked = todayLog ? todayLog.fresh : false;

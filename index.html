@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; }
-        .meal-tab { transition: all 0.2s ease; font-weight: 700; }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
@@ -20,61 +19,61 @@
                 <h1 class="text-4xl font-bold tracking-tight">PawFeed</h1>
                 <p class="text-emerald-400 text-sm">House of Woof + Don Doggos</p>
             </div>
-            <div class="flex items-center gap-x-2">
-                <button onclick="refreshFromGingr()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-2xl text-sm flex items-center gap-x-2">
-                    <i class="fa-solid fa-sync"></i>
-                    <span>Refresh from Gingr</span>
-                </button>
-                <button onclick="exportData()" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-2xl text-sm">Export</button>
-            </div>
+            <button onclick="refreshFromGingr()" 
+                    class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-2xl text-sm flex items-center gap-x-2">
+                <i class="fa-solid fa-sync"></i>
+                <span>Refresh from Gingr</span>
+            </button>
         </div>
 
         <!-- Location Tabs -->
         <div class="flex gap-x-2 mb-6">
             <button onclick="switchLocation('House of Woof')" id="tab-House of Woof"
-                    class="px-6 py-3 rounded-2xl font-semibold bg-emerald-600 text-white flex items-center gap-x-2">
+                    class="px-6 py-3 rounded-2xl font-semibold flex items-center gap-x-2 bg-emerald-600 text-white">
                 <i class="fa-solid fa-home"></i> House of Woof
             </button>
             <button onclick="switchLocation('Don Doggos')" id="tab-Don Doggos"
-                    class="px-6 py-3 rounded-2xl font-semibold bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 flex items-center gap-x-2">
+                    class="px-6 py-3 rounded-2xl font-semibold flex items-center gap-x-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600">
                 <i class="fa-solid fa-home"></i> Don Doggos
             </button>
         </div>
 
-        <!-- Meal Period -->
+        <!-- Meal Period Selector -->
         <div class="mb-6">
-            <div class="text-sm text-zinc-400 mb-2 px-1">CURRENT MEAL PERIOD</div>
+            <div class="text-sm text-zinc-400 mb-2 px-1 font-medium">CURRENT MEAL PERIOD</div>
             <div class="grid grid-cols-3 gap-3" id="meal-selector"></div>
         </div>
 
         <!-- Currently Checked In -->
         <div class="mb-8">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center justify-between mb-4">
                 <h2 class="text-2xl font-semibold">Currently Checked In</h2>
-                <button onclick="showAddDogModal()" class="px-5 py-2 bg-white text-zinc-900 rounded-2xl text-sm font-semibold">+ Add Dog</button>
+                <button onclick="showAddDogModal()" class="px-5 py-2.5 bg-white text-zinc-900 rounded-2xl text-sm font-semibold">+ Add Dog</button>
             </div>
             <div id="current-dogs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
         <!-- All Dogs -->
         <div>
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center justify-between mb-4">
                 <h2 class="text-2xl font-semibold">All Dogs</h2>
-                <input id="search-input" type="text" placeholder="Search..." oninput="renderAllDogs()" class="bg-zinc-900 border border-zinc-700 px-4 py-2 rounded-2xl text-sm w-72">
+                <input id="search-input" type="text" placeholder="Search dogs..." oninput="renderAllDogs()" 
+                       class="bg-zinc-900 border border-zinc-700 px-4 py-2.5 rounded-2xl text-sm w-72">
             </div>
             <div id="all-dogs-list" class="space-y-3"></div>
         </div>
     </div>
 
     <!-- Log Modal -->
-    <div id="log-modal" onclick="if (event.target.id === 'log-modal') closeLogModal()" class="hidden fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-[100]">
+    <div id="log-modal" onclick="if (event.target.id === 'log-modal') closeLogModal()" 
+         class="hidden fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-[100]">
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full sm:w-[420px] rounded-t-3xl sm:rounded-3xl p-6 border border-zinc-700">
-            <div class="flex justify-between mb-5">
+            <div class="flex justify-between items-center mb-5">
                 <div>
                     <div id="modal-dog-name" class="text-2xl font-bold"></div>
                     <div id="modal-dog-breed" class="text-emerald-400"></div>
                 </div>
-                <button onclick="closeLogModal()" class="text-3xl">&times;</button>
+                <button onclick="closeLogModal()" class="text-3xl text-zinc-400 hover:text-white">&times;</button>
             </div>
 
             <div class="space-y-5">
@@ -83,7 +82,7 @@
                     <div class="grid grid-cols-4 gap-2" id="quick-amount-buttons"></div>
                 </div>
 
-                <div class="flex items-center justify-between bg-zinc-800 p-4 rounded-2xl">
+                <div class="flex items-center justify-between bg-zinc-800 rounded-2xl p-4">
                     <div class="font-semibold">Ate Fresh Food?</div>
                     <input type="checkbox" id="fresh-food-toggle" class="w-6 h-6 accent-teal-600">
                 </div>
@@ -91,7 +90,7 @@
                 <textarea id="log-notes" rows="2" placeholder="Notes..." class="w-full bg-zinc-800 border border-zinc-600 rounded-2xl px-4 py-3 text-sm"></textarea>
             </div>
 
-            <button onclick="saveQuickLog()" class="mt-6 w-full py-4 bg-emerald-600 rounded-2xl font-bold">Save Log</button>
+            <button onclick="saveQuickLog()" class="mt-6 w-full py-4 bg-emerald-600 rounded-2xl font-bold text-lg">Save Log</button>
         </div>
     </div>
 
@@ -116,28 +115,31 @@
             const container = document.getElementById('meal-selector');
             container.innerHTML = '';
             const meals = [
-                {name: "Breakfast", icon: "fa-sun", color: "amber"},
-                {name: "Lunch", icon: "fa-cloud-sun", color: "orange"},
-                {name: "Dinner", icon: "fa-moon", color: "indigo"}
+                { name: "Breakfast", icon: "fa-sun", color: "amber" },
+                { name: "Lunch", icon: "fa-cloud-sun", color: "orange" },
+                { name: "Dinner", icon: "fa-moon", color: "indigo" }
             ];
-            meals.forEach(m => {
-                const active = currentMealPeriod === m.name;
+            meals.forEach(meal => {
+                const active = currentMealPeriod === meal.name;
                 const btn = document.createElement('button');
-                btn.className = `py-4 rounded-3xl flex flex-col items-center justify-center gap-y-1 text-lg font-bold ${active ? `bg-${m.color}-500 text-white` : 'bg-zinc-800 text-zinc-300 border border-zinc-600'}`;
-                btn.innerHTML = `<i class="fa-solid ${m.icon} text-2xl"></i><span>${m.name}</span>`;
-                btn.onclick = () => { currentMealPeriod = m.name; renderMealSelector(); };
+                btn.className = `py-4 rounded-3xl flex flex-col items-center justify-center text-lg font-bold ${active ? `bg-${meal.color}-500 text-white` : 'bg-zinc-800 text-zinc-300 border border-zinc-600'}`;
+                btn.innerHTML = `<i class="fa-solid ${meal.icon} text-2xl"></i><span>${meal.name}</span>`;
+                btn.onclick = () => {
+                    currentMealPeriod = meal.name;
+                    renderMealSelector();
+                };
                 container.appendChild(btn);
             });
         }
 
-        function switchLocation(loc) {
-            currentLocation = loc;
-            document.getElementById('tab-House of Woof').className = loc === 'House of Woof' 
-                ? 'px-6 py-3 rounded-2xl font-semibold bg-emerald-600 text-white flex items-center gap-x-2'
-                : 'px-6 py-3 rounded-2xl font-semibold bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 flex items-center gap-x-2';
-            document.getElementById('tab-Don Doggos').className = loc === 'Don Doggos' 
-                ? 'px-6 py-3 rounded-2xl font-semibold bg-emerald-600 text-white flex items-center gap-x-2'
-                : 'px-6 py-3 rounded-2xl font-semibold bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 flex items-center gap-x-2';
+        function switchLocation(location) {
+            currentLocation = location;
+            document.getElementById('tab-House of Woof').className = location === 'House of Woof' 
+                ? 'px-6 py-3 rounded-2xl font-semibold flex items-center gap-x-2 bg-emerald-600 text-white'
+                : 'px-6 py-3 rounded-2xl font-semibold flex items-center gap-x-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600';
+            document.getElementById('tab-Don Doggos').className = location === 'Don Doggos' 
+                ? 'px-6 py-3 rounded-2xl font-semibold flex items-center gap-x-2 bg-emerald-600 text-white'
+                : 'px-6 py-3 rounded-2xl font-semibold flex items-center gap-x-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600';
             renderCurrentDogs();
             renderAllDogs();
         }
@@ -148,8 +150,8 @@
             try {
                 const res = await fetch(url, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: new URLSearchParams({key: config.key, checked_in: 'true'})
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ key: config.key, checked_in: 'true' })
                 });
                 const data = await res.json();
                 const list = data.data || data;
@@ -161,8 +163,8 @@
                     gingr_id: r.animal.id,
                     logs: []
                 }));
-            } catch(e) {
-                console.error(e);
+            } catch (e) {
+                console.error("Gingr fetch failed", e);
                 return [];
             }
         }
@@ -170,9 +172,8 @@
         async function refreshFromGingr() {
             const newDogs = await fetchFromGingr(currentLocation);
             newDogs.forEach(nd => {
-                if (!dogs.find(d => d.gingr_id === nd.gingr_id && d.location === currentLocation)) {
-                    dogs.push(nd);
-                }
+                const exists = dogs.find(d => d.gingr_id === nd.gingr_id && d.location === currentLocation);
+                if (!exists) dogs.push(nd);
             });
             saveData();
             renderCurrentDogs();
@@ -191,14 +192,15 @@
                 const card = document.createElement('div');
                 card.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-5';
                 card.innerHTML = `
-                    <div class="flex justify-between">
-                        <div onclick="toggleHistory(this,'${dog.id}')" class="cursor-pointer">
+                    <div class="flex justify-between items-start">
+                        <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
                             <div class="font-bold text-xl">${dog.name}</div>
                             <div class="text-emerald-400 text-sm">${dog.breed}</div>
                         </div>
-                        <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" class="px-5 py-2 bg-emerald-600 rounded-2xl text-sm font-bold">LOG</button>
+                        <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" 
+                                class="px-5 py-2 bg-emerald-600 rounded-2xl text-sm font-bold">LOG</button>
                     </div>
-                    <div id="history-${dog.id}" class="hidden mt-4 text-sm"></div>
+                    <div id="history-${dog.id}" class="hidden mt-4 pt-4 border-t border-zinc-700 text-sm space-y-1"></div>
                 `;
                 container.appendChild(card);
             });
@@ -214,7 +216,7 @@
                 const row = document.createElement('div');
                 row.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4 flex justify-between items-center';
                 row.innerHTML = `
-                    <div onclick="toggleHistory(this,'${dog.id}')" class="cursor-pointer">
+                    <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
                         <div class="font-semibold">${dog.name}</div>
                     </div>
                     <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" class="px-5 py-2 bg-emerald-600 rounded-2xl text-sm font-bold">LOG</button>
@@ -223,16 +225,16 @@
             });
         }
 
-        function toggleHistory(el, dogId) {
+        function toggleHistory(element, dogId) {
             const div = document.getElementById('history-' + dogId);
             if (!div) return;
             if (!div.classList.contains('hidden')) { div.classList.add('hidden'); return; }
             const dog = dogs.find(d => d.id === dogId);
             if (!dog || !dog.logs || dog.logs.length === 0) {
-                div.innerHTML = `<div class="text-zinc-400">No history yet.</div>`;
+                div.innerHTML = `<div class="text-zinc-400 text-sm">No history yet.</div>`;
             } else {
-                div.innerHTML = dog.logs.slice().reverse().map(l => 
-                    `<div class="bg-zinc-800 p-2 rounded mb-1">${l.mealPeriod} • ${l.amountEaten} ${l.fresh ? '🌱' : ''}</div>`
+                div.innerHTML = dog.logs.slice().reverse().map(log => 
+                    `<div class="bg-zinc-800 px-3 py-1.5 rounded-2xl text-sm">${log.mealPeriod} • ${log.amountEaten} ${log.fresh ? '🌱 Fresh' : ''}</div>`
                 ).join('');
             }
             div.classList.remove('hidden');
@@ -258,9 +260,7 @@
             const dog = dogs.find(d => d.id === dogId);
             if (!dog) return;
 
-            const amountContainer = document.getElementById('quick-amount-buttons');
-            // For simplicity in this version, we'll use a default amount if not selected
-            const amount = amountContainer?.dataset?.selected || 'Some';
+            const amount = document.getElementById('quick-amount-buttons')?.dataset?.selected || 'Some';
             const fresh = document.getElementById('fresh-food-toggle').checked;
             const notes = document.getElementById('log-notes').value.trim();
 
@@ -281,25 +281,19 @@
         function showAddDogModal() {
             const name = prompt("Dog name:");
             if (!name) return;
-            dogs.push({id: 'm-' + Date.now(), name: name.trim(), breed: "", location: currentLocation, logs: []});
+            dogs.push({ id: 'm-' + Date.now(), name: name.trim(), breed: "", location: currentLocation, logs: [] });
             saveData();
             renderCurrentDogs();
             renderAllDogs();
         }
 
-        function exportData() {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([JSON.stringify(dogs, null, 2)], {type: 'application/json'}));
-            a.download = `pawfeed-${currentLocation}.json`;
-            a.click();
-        }
-
         function initialize() {
             loadData();
-            // Render meal selector
-            const container = document.getElementById('meal-selector');
-            const meals = ["Breakfast","Lunch","Dinner"];
-            meals.forEach((m, i) => {
-                const btn = document.createElement('button');
-                btn.className = `py-4 rounded-3xl flex flex-col items-center justify-center text-lg font-bold ${i===0 ? 'bg-amber-500 text-white' : 'bg-zinc-800 text-zinc-300 border border-zinc-600'}`;
-                btn.innerHTML = `<i class="fa-solid ${i===0?'fa-sun':i
+            renderMealSelector();
+            switchLocation('House of Woof');
+        }
+
+        window.onload = initialize;
+    </script>
+</body>
+</html>

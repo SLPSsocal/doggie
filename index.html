@@ -376,25 +376,25 @@
             const amountContainer = document.getElementById('quick-amount-buttons');
             amountContainer.innerHTML = '';
 
+            // Create buttons first
             ['All', 'Half', 'Some', 'None'].forEach(amount => {
                 const btn = document.createElement('button');
                 btn.className = 'py-3 text-sm rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700 transition-colors';
                 btn.textContent = amount;
-
                 amountContainer.appendChild(btn);
             });
 
-            // Now apply pre-selection if exists (more reliable)
-            if (todayLog) {
-                const selectedBtn = Array.from(amountContainer.children).find(b => b.textContent === todayLog.amountEaten);
-                if (selectedBtn) {
-                    selectedBtn.classList.remove('bg-zinc-800', 'border-zinc-600');
-                    selectedBtn.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white', 'font-semibold');
+            // Apply selected state AFTER buttons exist in DOM (more reliable)
+            if (todayLog && todayLog.amountEaten) {
+                const matchingButton = Array.from(amountContainer.children).find(b => b.textContent === todayLog.amountEaten);
+                if (matchingButton) {
+                    matchingButton.classList.remove('bg-zinc-800', 'border-zinc-600');
+                    matchingButton.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white', 'font-semibold');
                     amountContainer.dataset.selectedAmount = todayLog.amountEaten;
                 }
             }
 
-            // Add click handlers
+            // Attach click handlers
             Array.from(amountContainer.children).forEach(btn => {
                 btn.onclick = () => {
                     Array.from(amountContainer.children).forEach(b => {

@@ -229,7 +229,7 @@
                     `;
                 }
 
-                // Build amount buttons with pre-selection
+                // Build amount buttons with pre-selection (smaller)
                 let amountButtonsHTML = '';
                 ['All', 'Half', 'Some', 'None'].forEach(amount => {
                     const isSelected = todayLog && todayLog.amountEaten === amount;
@@ -238,7 +238,7 @@
                         : 'bg-zinc-800 border-zinc-600';
                     amountButtonsHTML += `
                         <button onclick="quickLogAmount('${dog.id}', '${amount}', this)" 
-                                class="py-2 text-xs rounded-2xl border ${selectedClass} active:bg-zinc-700">
+                                class="py-1.5 text-xs rounded-2xl border ${selectedClass} active:bg-zinc-700">
                             ${amount}
                         </button>
                     `;
@@ -254,7 +254,7 @@
 
                     <!-- Quick Logging - 2x2 + Fresh on right -->
                     <div class="flex gap-4 mb-3">
-                        <!-- Amount Buttons 2x2 -->
+                        <!-- Amount Buttons 2x2 (smaller) -->
                         <div class="flex-1">
                             <div class="text-xs text-zinc-400 mb-1">How much did they eat?</div>
                             <div class="grid grid-cols-2 gap-1.5">
@@ -264,7 +264,7 @@
 
                         <!-- Fresh Food on the right -->
                         <div class="flex flex-col justify-center">
-                            <div class="text-sm text-zinc-300 mb-1">Fresh?</div>
+                            <div class="text-sm text-zinc-300 mb-1">Fresh Food?</div>
                             <input type="checkbox" onchange="quickLogFresh('${dog.id}', this.checked)" class="w-6 h-6 accent-teal-600" ${freshChecked}>
                         </div>
                     </div>

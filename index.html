@@ -373,20 +373,27 @@
             const today = document.getElementById('log-date').value;
             const todayLog = dog.logs?.find(l => l.date === today);
 
-            // Render 2x2 amount buttons
+            // Render 2x2 amount buttons with clear selected state
             const amountContainer = document.getElementById('quick-amount-buttons');
             amountContainer.innerHTML = '';
             ['All', 'Half', 'Some', 'None'].forEach(amount => {
                 const btn = document.createElement('button');
-                btn.className = `py-3 text-sm rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700`;
+                btn.className = `py-3 text-sm rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700 transition-colors`;
                 btn.textContent = amount;
+                
                 if (todayLog && todayLog.amountEaten === amount) {
-                    btn.classList.add('!bg-emerald-600', '!border-emerald-500');
+                    // Clear selected style
+                    btn.className = `py-3 text-sm rounded-2xl border border-emerald-500 bg-emerald-600 text-white font-semibold`;
                     amountContainer.dataset.selectedAmount = amount;
                 }
+                
                 btn.onclick = () => {
-                    Array.from(amountContainer.children).forEach(b => b.classList.remove('!bg-emerald-600', '!border-emerald-500'));
-                    btn.classList.add('!bg-emerald-600', '!border-emerald-500');
+                    // Deselect all
+                    Array.from(amountContainer.children).forEach(b => {
+                        b.className = `py-3 text-sm rounded-2xl border border-zinc-600 bg-zinc-800 active:bg-zinc-700 transition-colors`;
+                    });
+                    // Select this one
+                    btn.className = `py-3 text-sm rounded-2xl border border-emerald-500 bg-emerald-600 text-white font-semibold`;
                     amountContainer.dataset.selectedAmount = amount;
                 };
                 amountContainer.appendChild(btn);

@@ -74,7 +74,7 @@
             </div>
 
             <div class="space-y-5">
-                <!-- Amount Selection -->
+                <!-- Amount -->
                 <div>
                     <div class="text-sm text-zinc-400 mb-2">How much did they eat?</div>
                     <div class="grid grid-cols-4 gap-2" id="quick-amount-buttons"></div>
@@ -183,7 +183,8 @@
         function renderCurrentDogs() {
             const container = document.getElementById('current-dogs');
             container.innerHTML = '';
-            const filtered = dogs.filter(d => d.location === currentLocation);
+            let filtered = dogs.filter(d => d.location === currentLocation);
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
 
             if (filtered.length === 0) {
                 container.innerHTML = `<div class="col-span-full text-center py-8 text-zinc-400">No dogs checked in at ${currentLocation}.</div>`;
@@ -192,25 +193,28 @@
 
             filtered.forEach(dog => {
                 const lastLog = dog.logs && dog.logs.length > 0 ? dog.logs[dog.logs.length - 1] : null;
-                
-                const card = document.createElement('div');
-                card.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-5';
-                
+
                 let previewHTML = '';
                 if (lastLog) {
+                    const notePreview = lastLog.notes ? lastLog.notes.substring(0, 60) + (lastLog.notes.length > 60 ? '...' : '') : '';
                     previewHTML = `
-                        <div class="mt-3 text-sm">
-                            <div>ate: <span class="font-semibold">${lastLog.amountEaten}</span></div>
+                        <div class="mt-3 text-sm space-y-0.5">
+                            <div><span class="font-semibold">Ate:</span> ${lastLog.amountEaten}</div>
                             <div>Fresh Food: ${lastLog.fresh ? '✅' : '❌'}</div>
+                            ${notePreview ? `<div class="text-zinc-400 text-xs line-clamp-1">${notePreview}</div>` : ''}
                         </div>
                     `;
                 }
 
+                const card = document.createElement('div');
+                card.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-5';
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
-                            <div class="font-bold text-xl">${dog.name}</div>
-                            <div class="text-emerald-400 text-sm">${dog.breed}</div>
+                            <div>
+                                <span class="font-bold text-xl">${dog.name}</span>
+                                <span class="text-emerald-400 text-sm ml-2">${dog.breed}</span>
+                            </div>
                         </div>
                         <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" 
                                 class="px-5 py-2 bg-emerald-600 rounded-2xl text-sm font-bold">LOG</button>
@@ -227,6 +231,7 @@
             const search = document.getElementById('search-input').value.toLowerCase();
             container.innerHTML = '';
             let filtered = dogs.filter(d => d.location === currentLocation);
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
             if (search) filtered = filtered.filter(d => d.name.toLowerCase().includes(search));
 
             filtered.forEach(dog => {
@@ -235,7 +240,10 @@
                 row.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4 flex justify-between items-center';
                 row.innerHTML = `
                     <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
-                        <div class="font-semibold">${dog.name}</div>
+                        <div>
+                            <span class="font-semibold">${dog.name}</span>
+                            <span class="text-emerald-400 text-sm ml-2">${dog.breed}</span>
+                        </div>
                         ${lastLog ? `<div class="text-xs text-zinc-400">Last: ${lastLog.amountEaten} ${lastLog.fresh ? '🌱' : ''}</div>` : ''}
                     </div>
                     <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" class="px-5 py-2 bg-emerald-600 rounded-2xl text-sm font-bold">LOG</button>
@@ -267,6 +275,16 @@
             document.getElementById('modal-dog-name').textContent = dog.name;
             document.getElementById('modal-dog-breed').textContent = dog.breed || '';
             document.getElementById('log-modal').dataset.dogId = dogId;
+
+            // Clear previous values
+            document.getElementById('log-notes').value = '';
+            document.getElementById('fresh-food-toggle').checked = false;
+            document.getElementById('quick-amount-buttons').dataset.selectedAmount = '';
+
+            // Reset amount buttons
+            const amountContainer = document.getElementById('quick-amount-buttons');
+            Array.from(amountContainer.children).forEach(b => b.classList.remove('!bg-emerald-600', '!border-emerald-500'));
+
             document.getElementById('log-modal').classList.remove('hidden');
             document.getElementById('log-modal').classList.add('flex');
 

@@ -131,7 +131,15 @@
 
         function loadData() {
             dogs = JSON.parse(localStorage.getItem('pawfeed_v4') || '[]');
+
+            // Backfill gingr_pet_id for old records
+            dogs.forEach(dog => {
+                if (!dog.gingr_pet_id && dog.gingr_id) {
+                    dog.gingr_pet_id = dog.gingr_id;
+                }
+            });
         }
+
         function saveData() {
             localStorage.setItem('pawfeed_v4', JSON.stringify(dogs));
         }
@@ -209,8 +217,13 @@
         async function refreshFromGingr() {
             const newDogs = await fetchFromGingr(currentLocation);
             newDogs.forEach(nd => {
-                if (!dogs.find(d => d.gingr_id === nd.gingr_id && d.location === currentLocation)) {
+                const existing = dogs.find(d => d.gingr_id === nd.gingr_id && d.location === currentLocation);
+                if (!existing) {
                     dogs.push(nd);
+                } else {
+                    // Update existing dog with fresh data from Gingr (including owner)
+                    existing.owner_last_name = nd.owner_last_name || existing.owner_last_name;
+                    existing.gingr_pet_id = nd.gingr_pet_id || existing.gingr_pet_id;
                 }
             });
             saveData();
@@ -275,7 +288,10 @@
                 const log = dog.logs?.find(l => l.date === date && l.mealPeriod === meal);
                 if (!log) return;
 
-                const gingrUrl = `https://${config.subdomain}.gingrapp.com/admin/animals/${dog.gingr_pet_id}`;
+                const petId = dog.gingr_pet_id || dog.gingr_id || '';
+                const gingrUrl = petId 
+                    ? `https://${config.subdomain}.gingrapp.com/admin/animals/${petId}` 
+                    : '';
 
                 rows.push({
                     Date: date,
@@ -283,7 +299,7 @@
                     Dog: dog.name,
                     Owner: dog.owner_last_name || '',
                     Breed: dog.breed || '',
-                    GingrPetID: dog.gingr_pet_id,
+                    GingrPetID: petId,
                     GingrProfile: gingrUrl,
                     Ate: log.amountEaten,
                     FreshFood: log.fresh ? 'Yes' : 'No'

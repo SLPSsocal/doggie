@@ -17,7 +17,6 @@
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h1 class="text-4xl font-bold tracking-tight">PawFeed</h1>
-                <p class="text-emerald-400 text-sm">House of Woof + Don Doggos</p>
             </div>
             <button onclick="refreshFromGingr()" 
                     class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded-2xl text-sm flex items-center gap-x-2">
@@ -38,7 +37,7 @@
             </button>
         </div>
 
-        <!-- Meal Period Selector -->
+        <!-- Meal Period -->
         <div class="mb-6">
             <div class="text-sm text-zinc-400 mb-2 px-1 font-medium">CURRENT MEAL PERIOD</div>
             <div class="grid grid-cols-3 gap-3" id="meal-selector"></div>
@@ -46,10 +45,7 @@
 
         <!-- Currently Checked In -->
         <div class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-2xl font-semibold">Currently Checked In</h2>
-                <button onclick="showAddDogModal()" class="px-5 py-2.5 bg-white text-zinc-900 rounded-2xl text-sm font-semibold">+ Add Dog</button>
-            </div>
+            <h2 class="text-2xl font-semibold mb-4">Currently Checked In</h2>
             <div id="current-dogs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
@@ -68,6 +64,7 @@
     <div id="log-modal" onclick="if (event.target.id === 'log-modal') closeLogModal()" 
          class="hidden fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-[100]">
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full sm:w-[420px] rounded-t-3xl sm:rounded-3xl p-6 border border-zinc-700">
+            
             <div class="flex justify-between items-center mb-5">
                 <div>
                     <div id="modal-dog-name" class="text-2xl font-bold"></div>
@@ -77,11 +74,13 @@
             </div>
 
             <div class="space-y-5">
+                <!-- Amount Selection -->
                 <div>
                     <div class="text-sm text-zinc-400 mb-2">How much did they eat?</div>
                     <div class="grid grid-cols-4 gap-2" id="quick-amount-buttons"></div>
                 </div>
 
+                <!-- Fresh Food -->
                 <div class="flex items-center justify-between bg-zinc-800 rounded-2xl p-4">
                     <div class="font-semibold">Ate Fresh Food?</div>
                     <input type="checkbox" id="fresh-food-toggle" class="w-6 h-6 accent-teal-600">
@@ -164,7 +163,7 @@
                     logs: []
                 }));
             } catch (e) {
-                console.error("Gingr fetch failed", e);
+                console.error(e);
                 return [];
             }
         }
@@ -172,8 +171,9 @@
         async function refreshFromGingr() {
             const newDogs = await fetchFromGingr(currentLocation);
             newDogs.forEach(nd => {
-                const exists = dogs.find(d => d.gingr_id === nd.gingr_id && d.location === currentLocation);
-                if (!exists) dogs.push(nd);
+                if (!dogs.find(d => d.gingr_id === nd.gingr_id && d.location === currentLocation)) {
+                    dogs.push(nd);
+                }
             });
             saveData();
             renderCurrentDogs();
@@ -184,13 +184,28 @@
             const container = document.getElementById('current-dogs');
             container.innerHTML = '';
             const filtered = dogs.filter(d => d.location === currentLocation);
+
             if (filtered.length === 0) {
                 container.innerHTML = `<div class="col-span-full text-center py-8 text-zinc-400">No dogs checked in at ${currentLocation}.</div>`;
                 return;
             }
+
             filtered.forEach(dog => {
+                const lastLog = dog.logs && dog.logs.length > 0 ? dog.logs[dog.logs.length - 1] : null;
+                
                 const card = document.createElement('div');
                 card.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-5';
+                
+                let previewHTML = '';
+                if (lastLog) {
+                    previewHTML = `
+                        <div class="mt-3 text-sm">
+                            <div>ate: <span class="font-semibold">${lastLog.amountEaten}</span></div>
+                            <div>Fresh Food: ${lastLog.fresh ? '✅' : '❌'}</div>
+                        </div>
+                    `;
+                }
+
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
@@ -200,6 +215,7 @@
                         <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" 
                                 class="px-5 py-2 bg-emerald-600 rounded-2xl text-sm font-bold">LOG</button>
                     </div>
+                    ${previewHTML}
                     <div id="history-${dog.id}" class="hidden mt-4 pt-4 border-t border-zinc-700 text-sm space-y-1"></div>
                 `;
                 container.appendChild(card);
@@ -212,12 +228,15 @@
             container.innerHTML = '';
             let filtered = dogs.filter(d => d.location === currentLocation);
             if (search) filtered = filtered.filter(d => d.name.toLowerCase().includes(search));
+
             filtered.forEach(dog => {
+                const lastLog = dog.logs && dog.logs.length > 0 ? dog.logs[dog.logs.length - 1] : null;
                 const row = document.createElement('div');
                 row.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4 flex justify-between items-center';
                 row.innerHTML = `
                     <div onclick="toggleHistory(this, '${dog.id}')" class="cursor-pointer">
                         <div class="font-semibold">${dog.name}</div>
+                        ${lastLog ? `<div class="text-xs text-zinc-400">Last: ${lastLog.amountEaten} ${lastLog.fresh ? '🌱' : ''}</div>` : ''}
                     </div>
                     <button onclick="event.stopImmediatePropagation(); quickLog('${dog.id}')" class="px-5 py-2 bg-emerald-600 rounded-2xl text-sm font-bold">LOG</button>
                 `;
@@ -229,6 +248,7 @@
             const div = document.getElementById('history-' + dogId);
             if (!div) return;
             if (!div.classList.contains('hidden')) { div.classList.add('hidden'); return; }
+
             const dog = dogs.find(d => d.id === dogId);
             if (!dog || !dog.logs || dog.logs.length === 0) {
                 div.innerHTML = `<div class="text-zinc-400 text-sm">No history yet.</div>`;
@@ -243,11 +263,30 @@
         function quickLog(dogId) {
             const dog = dogs.find(d => d.id === dogId);
             if (!dog) return;
+
             document.getElementById('modal-dog-name').textContent = dog.name;
             document.getElementById('modal-dog-breed').textContent = dog.breed || '';
             document.getElementById('log-modal').dataset.dogId = dogId;
             document.getElementById('log-modal').classList.remove('hidden');
             document.getElementById('log-modal').classList.add('flex');
+
+            renderAmountButtons();
+        }
+
+        function renderAmountButtons() {
+            const container = document.getElementById('quick-amount-buttons');
+            container.innerHTML = '';
+            ['All', 'Half', 'Some', 'None'].forEach(amount => {
+                const btn = document.createElement('button');
+                btn.className = `py-3 rounded-2xl text-sm font-bold border border-zinc-600 bg-zinc-800 active:bg-zinc-700`;
+                btn.textContent = amount;
+                btn.onclick = () => {
+                    Array.from(container.children).forEach(b => b.classList.remove('!bg-emerald-600', '!border-emerald-500'));
+                    btn.classList.add('!bg-emerald-600', '!border-emerald-500');
+                    container.dataset.selectedAmount = amount;
+                };
+                container.appendChild(btn);
+            });
         }
 
         function closeLogModal() {
@@ -260,7 +299,8 @@
             const dog = dogs.find(d => d.id === dogId);
             if (!dog) return;
 
-            const amount = document.getElementById('quick-amount-buttons')?.dataset?.selected || 'Some';
+            const container = document.getElementById('quick-amount-buttons');
+            const amount = container.dataset.selectedAmount || 'Some';
             const fresh = document.getElementById('fresh-food-toggle').checked;
             const notes = document.getElementById('log-notes').value.trim();
 
@@ -272,17 +312,9 @@
                 fresh: fresh,
                 notes: notes
             });
+
             saveData();
             closeLogModal();
-            renderCurrentDogs();
-            renderAllDogs();
-        }
-
-        function showAddDogModal() {
-            const name = prompt("Dog name:");
-            if (!name) return;
-            dogs.push({ id: 'm-' + Date.now(), name: name.trim(), breed: "", location: currentLocation, logs: [] });
-            saveData();
             renderCurrentDogs();
             renderAllDogs();
         }

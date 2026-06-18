@@ -80,10 +80,11 @@
          class="hidden fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-[100]">
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full sm:w-[420px] rounded-t-3xl sm:rounded-3xl p-6 border border-zinc-700">
             
-            <div class="flex justify-between items-center mb-5">
+            <div class="flex justify-between items-center mb-4">
                 <div>
                     <div id="modal-dog-name" class="text-2xl font-bold"></div>
                     <div id="modal-dog-breed" class="text-emerald-400"></div>
+                    <div id="modal-feeding-instructions" class="text-sm text-amber-400 mt-1 hidden"></div>
                 </div>
                 <button onclick="closeLogModal()" class="text-3xl text-zinc-400 hover:text-white">&times;</button>
             </div>
@@ -299,21 +300,18 @@
                         Dog: dog.name,
                         Owner: dog.owner_last_name || '',
                         Breed: dog.breed || '',
-                        FeedingInstructions: dog.feeding_instructions || '',
                         GingrPetID: petId,
                         GingrProfile: gingrUrl,
                         Ate: log.amountEaten,
                         FreshFood: log.fresh ? 'Yes' : 'No'
                     });
                 } else {
-                    // Checked in but no log yet → show BLANK
                     rows.push({
                         Date: date,
                         Meal: meal,
                         Dog: dog.name,
                         Owner: dog.owner_last_name || '',
                         Breed: dog.breed || '',
-                        FeedingInstructions: dog.feeding_instructions || '',
                         GingrPetID: petId,
                         GingrProfile: gingrUrl,
                         Ate: 'BLANK',
@@ -425,119 +423,22 @@
             });
         }
 
-        function quickLogAmount(dogId, amount, button) {
-            const dog = dogs.find(d => d.id === dogId);
-            if (!dog) return;
-
-            const date = document.getElementById('log-date').value;
-            const meal = currentMealPeriod;
-
-            if (!dog.logs) dog.logs = [];
-            dog.logs = dog.logs.filter(l => !(l.date === date && l.mealPeriod === meal));
-
-            dog.logs.push({
-                date: date,
-                timestamp: new Date().toISOString(),
-                mealPeriod: meal,
-                amountEaten: amount,
-                fresh: false,
-                notes: ''
-            });
-
-            saveData();
-            renderCurrentDogs();
-            renderAllDogs();
-        }
-
-        function quickLogFresh(dogId, isFresh) {
-            const dog = dogs.find(d => d.id === dogId);
-            if (!dog) return;
-
-            const date = document.getElementById('log-date').value;
-            const meal = currentMealPeriod;
-
-            if (!dog.logs) dog.logs = [];
-
-            let existing = dog.logs.find(l => l.date === date && l.mealPeriod === meal);
-            if (!existing) {
-                existing = {
-                    date: date,
-                    timestamp: new Date().toISOString(),
-                    mealPeriod: meal,
-                    amountEaten: 'Some',
-                    fresh: isFresh,
-                    notes: ''
-                };
-                dog.logs.push(existing);
-            } else {
-                existing.fresh = isFresh;
-            }
-
-            saveData();
-            renderCurrentDogs();
-            renderAllDogs();
-        }
-
-        function renderAllDogs() {
-            const container = document.getElementById('all-dogs-list');
-            const search = document.getElementById('search-input').value.toLowerCase();
-            container.innerHTML = '';
-            let filtered = dogs.filter(d => d.location === currentLocation);
-            filtered.sort((a, b) => a.name.localeCompare(b.name));
-            if (search) filtered = filtered.filter(d => d.name.toLowerCase().includes(search));
-
-            filtered.forEach(dog => {
-                const lastLog = dog.logs && dog.logs.length > 0 ? dog.logs[dog.logs.length - 1] : null;
-                const row = document.createElement('div');
-                row.className = 'bg-zinc-900 border border-zinc-700 rounded-3xl p-4 flex justify-between items-center';
-                row.innerHTML = `
-                    <div>
-                        <div class="font-semibold">${dog.name} ${dog.owner_last_name ? `(${dog.owner_last_name})` : ''}</div>
-                        ${lastLog ? `<div class="text-xs text-zinc-400">Last: ${lastLog.amountEaten} ${lastLog.fresh ? '🌱' : ''}</div>` : ''}
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        function showHistory(dogId) {
-            const dog = dogs.find(d => d.id === dogId);
-            if (!dog || !dog.logs || dog.logs.length === 0) {
-                alert("No history yet for this dog.");
-                return;
-            }
-
-            let html = `<h3 class="text-xl font-semibold mb-4">${dog.name} - History</h3>`;
-            dog.logs.slice().reverse().forEach(log => {
-                const dateObj = new Date(log.date);
-                const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-                const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-                html += `
-                    <div class="bg-zinc-800 px-3 py-2 rounded-2xl mb-2 text-sm">
-                        <div>${dayName}, ${formattedDate} • ${log.mealPeriod} • ${log.amountEaten}</div>
-                        ${log.fresh ? '<div class="text-emerald-400 text-xs mt-0.5">🌱 Fresh Food</div>' : ''}
-                    </div>
-                `;
-            });
-
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-6';
-            modal.innerHTML = `
-                <div class="bg-zinc-900 rounded-3xl max-w-lg w-full p-6 max-h-[80vh] overflow-auto">
-                    ${html}
-                    <button onclick="this.closest('.fixed').remove()" class="mt-6 w-full py-3 border border-zinc-600 rounded-2xl">Close</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
         function quickLog(dogId) {
             const dog = dogs.find(d => d.id === dogId);
             if (!dog) return;
 
             document.getElementById('modal-dog-name').textContent = dog.name;
             document.getElementById('modal-dog-breed').textContent = dog.breed || '';
+
+            // Show feeding instructions in modal if available
+            const feedingEl = document.getElementById('modal-feeding-instructions');
+            if (dog.feeding_instructions && dog.feeding_instructions.trim() !== '') {
+                feedingEl.textContent = `Feeding: ${dog.feeding_instructions}`;
+                feedingEl.classList.remove('hidden');
+            } else {
+                feedingEl.classList.add('hidden');
+            }
+
             document.getElementById('log-modal').dataset.dogId = dogId;
 
             const today = document.getElementById('log-date').value;

@@ -381,6 +381,7 @@
                     `;
                 }
 
+                // Amount buttons with stopPropagation
                 let amountButtonsHTML = '';
                 ['All', 'Half', 'Some', 'None'].forEach(amount => {
                     const isSelected = todayLog && todayLog.amountEaten === amount;
@@ -398,8 +399,9 @@
                 const freshChecked = todayLog && todayLog.fresh ? 'checked' : '';
 
                 card.innerHTML = `
-                    <div onclick="quickLog('${dog.id}')" class="cursor-pointer">
-                        <div class="flex justify-between items-start mb-2">
+                    <!-- Clickable header area for modal -->
+                    <div onclick="quickLog('${dog.id}')" class="cursor-pointer mb-2">
+                        <div class="flex justify-between items-start">
                             <div>
                                 <div class="font-bold text-lg">${dog.name} ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}</div>
                                 <div class="text-emerald-400 text-sm">${dog.breed}</div>
@@ -408,6 +410,7 @@
                         </div>
                     </div>
 
+                    <!-- Quick logging area -->
                     <div class="flex gap-4 mb-3">
                         <div class="flex-1">
                             <div class="text-xs text-zinc-400 mb-1">How much did they eat?</div>
@@ -424,6 +427,7 @@
 
                     ${lastLogHTML}
 
+                    <!-- History link -->
                     <div onclick="event.stopImmediatePropagation(); showHistory('${dog.id}')" class="text-right mt-2 cursor-pointer">
                         <span class="text-[10px] italic text-zinc-500">click to see history</span>
                     </div>

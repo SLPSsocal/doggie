@@ -364,8 +364,7 @@
                 const todayLog = dog.logs?.find(l => l.date === today);
 
                 const card = document.createElement('div');
-                card.className = `${cardSkin} rounded-3xl p-4 cursor-pointer`;
-                card.onclick = () => quickLog(dog.id);
+                card.className = `${cardSkin} rounded-3xl p-4`;
 
                 let feedingHTML = '';
                 if (dog.feeding_instructions && dog.feeding_instructions.trim() !== '') {
@@ -399,12 +398,14 @@
                 const freshChecked = todayLog && todayLog.fresh ? 'checked' : '';
 
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="font-bold text-lg">${dog.name} ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}</div>
-                            <div class="text-emerald-400 text-sm">${dog.breed}</div>
+                    <div onclick="quickLog('${dog.id}')" class="cursor-pointer">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <div class="font-bold text-lg">${dog.name} ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}</div>
+                                <div class="text-emerald-400 text-sm">${dog.breed}</div>
+                            </div>
+                            ${feedingHTML}
                         </div>
-                        ${feedingHTML}
                     </div>
 
                     <div class="flex gap-4 mb-3">

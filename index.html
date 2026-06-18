@@ -381,7 +381,7 @@
                     `;
                 }
 
-                // Amount buttons with stopPropagation
+                // Amount buttons
                 let amountButtonsHTML = '';
                 ['All', 'Half', 'Some', 'None'].forEach(amount => {
                     const isSelected = todayLog && todayLog.amountEaten === amount;
@@ -389,7 +389,7 @@
                         ? 'bg-emerald-600 border-emerald-500 text-white font-semibold' 
                         : 'bg-zinc-800 border-zinc-600';
                     amountButtonsHTML += `
-                        <button onclick="event.stopImmediatePropagation(); quickLogAmount('${dog.id}', '${amount}', this)" 
+                        <button onclick="quickLogAmount('${dog.id}', '${amount}', this)" 
                                 class="py-1.5 text-xs rounded-2xl border ${selectedClass} active:bg-zinc-700">
                             ${amount}
                         </button>
@@ -399,18 +399,16 @@
                 const freshChecked = todayLog && todayLog.fresh ? 'checked' : '';
 
                 card.innerHTML = `
-                    <!-- Clickable header area for modal -->
-                    <div onclick="quickLog('${dog.id}')" class="cursor-pointer mb-2">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="font-bold text-lg">${dog.name} ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}</div>
-                                <div class="text-emerald-400 text-sm">${dog.breed}</div>
-                            </div>
-                            ${feedingHTML}
+                    <!-- Header: Name + Feeding (click name to open modal) -->
+                    <div class="flex justify-between items-start mb-2">
+                        <div onclick="quickLog('${dog.id}')" class="cursor-pointer">
+                            <div class="font-bold text-lg">${dog.name} ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}</div>
+                            <div class="text-emerald-400 text-sm">${dog.breed}</div>
                         </div>
+                        ${feedingHTML}
                     </div>
 
-                    <!-- Quick logging area -->
+                    <!-- Quick actions -->
                     <div class="flex gap-4 mb-3">
                         <div class="flex-1">
                             <div class="text-xs text-zinc-400 mb-1">How much did they eat?</div>
@@ -421,14 +419,14 @@
 
                         <div class="flex flex-col justify-center">
                             <div class="text-sm text-zinc-300 mb-1">Fresh Food?</div>
-                            <input type="checkbox" onchange="event.stopImmediatePropagation(); quickLogFresh('${dog.id}', this.checked)" class="w-6 h-6 accent-teal-600" ${freshChecked}>
+                            <input type="checkbox" onchange="quickLogFresh('${dog.id}', this.checked)" class="w-6 h-6 accent-teal-600" ${freshChecked}>
                         </div>
                     </div>
 
                     ${lastLogHTML}
 
-                    <!-- History link -->
-                    <div onclick="event.stopImmediatePropagation(); showHistory('${dog.id}')" class="text-right mt-2 cursor-pointer">
+                    <!-- History -->
+                    <div onclick="showHistory('${dog.id}')" class="text-right mt-2 cursor-pointer">
                         <span class="text-[10px] italic text-zinc-500">click to see history</span>
                     </div>
                 `;

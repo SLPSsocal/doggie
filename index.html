@@ -80,11 +80,10 @@
          class="hidden fixed inset-0 bg-black/70 flex items-end sm:items-center justify-center z-[100]">
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 w-full sm:w-[420px] rounded-t-3xl sm:rounded-3xl p-6 border border-zinc-700">
             
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center mb-5">
                 <div>
                     <div id="modal-dog-name" class="text-2xl font-bold"></div>
                     <div id="modal-dog-breed" class="text-emerald-400"></div>
-                    <div id="modal-feeding-instructions" class="text-sm text-amber-400 mt-1 hidden"></div>
                 </div>
                 <button onclick="closeLogModal()" class="text-3xl text-zinc-400 hover:text-white">&times;</button>
             </div>
@@ -365,7 +364,13 @@
                 const todayLog = dog.logs?.find(l => l.date === today);
 
                 const card = document.createElement('div');
-                card.className = `${cardSkin} rounded-3xl p-4`;
+                card.className = `${cardSkin} rounded-3xl p-4 cursor-pointer`;
+                card.onclick = () => quickLog(dog.id);
+
+                let feedingHTML = '';
+                if (dog.feeding_instructions && dog.feeding_instructions.trim() !== '') {
+                    feedingHTML = `<div class="text-[10px] text-amber-400 text-right leading-tight">${dog.feeding_instructions}</div>`;
+                }
 
                 let lastLogHTML = '';
                 if (todayLog) {
@@ -384,7 +389,7 @@
                         ? 'bg-emerald-600 border-emerald-500 text-white font-semibold' 
                         : 'bg-zinc-800 border-zinc-600';
                     amountButtonsHTML += `
-                        <button onclick="quickLogAmount('${dog.id}', '${amount}', this)" 
+                        <button onclick="event.stopImmediatePropagation(); quickLogAmount('${dog.id}', '${amount}', this)" 
                                 class="py-1.5 text-xs rounded-2xl border ${selectedClass} active:bg-zinc-700">
                             ${amount}
                         </button>
@@ -394,9 +399,12 @@
                 const freshChecked = todayLog && todayLog.fresh ? 'checked' : '';
 
                 card.innerHTML = `
-                    <div class="mb-3">
-                        <div class="font-bold text-lg">${dog.name} ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}</div>
-                        <div class="text-emerald-400 text-sm mb-3">${dog.breed}</div>
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="font-bold text-lg">${dog.name} ${dog.owner_last_name ? `<span class="text-emerald-400 text-sm">(${dog.owner_last_name})</span>` : ''}</div>
+                            <div class="text-emerald-400 text-sm">${dog.breed}</div>
+                        </div>
+                        ${feedingHTML}
                     </div>
 
                     <div class="flex gap-4 mb-3">
@@ -409,13 +417,13 @@
 
                         <div class="flex flex-col justify-center">
                             <div class="text-sm text-zinc-300 mb-1">Fresh Food?</div>
-                            <input type="checkbox" onchange="quickLogFresh('${dog.id}', this.checked)" class="w-6 h-6 accent-teal-600" ${freshChecked}>
+                            <input type="checkbox" onchange="event.stopImmediatePropagation(); quickLogFresh('${dog.id}', this.checked)" class="w-6 h-6 accent-teal-600" ${freshChecked}>
                         </div>
                     </div>
 
                     ${lastLogHTML}
 
-                    <div onclick="showHistory('${dog.id}')" class="text-right mt-2 cursor-pointer">
+                    <div onclick="event.stopImmediatePropagation(); showHistory('${dog.id}')" class="text-right mt-2 cursor-pointer">
                         <span class="text-[10px] italic text-zinc-500">click to see history</span>
                     </div>
                 `;
@@ -429,16 +437,6 @@
 
             document.getElementById('modal-dog-name').textContent = dog.name;
             document.getElementById('modal-dog-breed').textContent = dog.breed || '';
-
-            // Show feeding instructions in modal if available
-            const feedingEl = document.getElementById('modal-feeding-instructions');
-            if (dog.feeding_instructions && dog.feeding_instructions.trim() !== '') {
-                feedingEl.textContent = `Feeding: ${dog.feeding_instructions}`;
-                feedingEl.classList.remove('hidden');
-            } else {
-                feedingEl.classList.add('hidden');
-            }
-
             document.getElementById('log-modal').dataset.dogId = dogId;
 
             const today = document.getElementById('log-date').value;

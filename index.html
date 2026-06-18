@@ -136,6 +136,9 @@
                 if (!dog.gingr_pet_id && dog.gingr_id) {
                     dog.gingr_pet_id = dog.gingr_id;
                 }
+                if (typeof dog.prefersFreshFood === 'undefined') {
+                    dog.prefersFreshFood = false;
+                }
             });
         }
 
@@ -196,7 +199,6 @@
                 });
                 const data = await res.json();
                 const list = data.data || data;
-
                 return Object.values(list).map(r => ({
                     id: 'g-' + r.animal.id,
                     name: r.animal.name,
@@ -206,6 +208,7 @@
                     location: location,
                     gingr_id: r.animal.id,
                     feeding_instructions: r.animal?.diet || r.animal?.feeding_instructions || r.animal?.feeding || '',
+                    prefersFreshFood: false,
                     logs: []
                 }));
             } catch (e) {
@@ -215,17 +218,22 @@
         }
 
         async function refreshFromGingr() {
-            const newDogs = await fetchFromGingr(currentLocation);
-            newDogs.forEach(nd => {
+            const newDogsFromGingr = await fetchFromGingr(currentLocation);
+
+            // Remove dogs that are no longer checked in
+            dogs = dogs.filter(d => 
+                d.location !== currentLocation || 
+                newDogsFromGingr.some(nd => nd.gingr_id === d.gingr_id)
+            );
+
+            // Add new dogs that are now checked in
+            newDogsFromGingr.forEach(nd => {
                 const existing = dogs.find(d => d.gingr_id === nd.gingr_id && d.location === currentLocation);
                 if (!existing) {
                     dogs.push(nd);
-                } else {
-                    existing.owner_last_name = nd.owner_last_name || existing.owner_last_name;
-                    existing.gingr_pet_id = nd.gingr_pet_id || existing.gingr_pet_id;
-                    existing.feeding_instructions = nd.feeding_instructions || existing.feeding_instructions;
                 }
             });
+
             saveData();
             renderCurrentDogs();
             renderAllDogs();
@@ -246,7 +254,7 @@
                 if (!dog.logs) dog.logs = [];
 
                 let amount = 'All';
-                let fresh = true;
+                let fresh = dog.prefersFreshFood || false;
 
                 if (dog.name.toLowerCase().includes('annie')) {
                     amount = 'Some';
@@ -366,7 +374,6 @@
                 const card = document.createElement('div');
                 card.className = `${cardSkin} rounded-3xl p-4`;
 
-                // Feeding instructions to the right of name
                 let feedingHTML = '';
                 if (dog.feeding_instructions && dog.feeding_instructions.trim() !== '') {
                     feedingHTML = `<span class="text-amber-400 text-xs ml-2">${dog.feeding_instructions}</span>`;
@@ -382,7 +389,6 @@
                     `;
                 }
 
-                // Amount buttons
                 let amountButtonsHTML = '';
                 ['All', 'Half', 'Some', 'None'].forEach(amount => {
                     const isSelected = todayLog && todayLog.amountEaten === amount;
@@ -397,7 +403,8 @@
                     `;
                 });
 
-                const freshChecked = todayLog && todayLog.fresh ? 'checked' : '';
+                // Use persistent prefersFreshFood for the checkbox
+                const freshChecked = dog.prefersFreshFood ? 'checked' : '';
 
                 card.innerHTML = `
                     <div class="mb-3">
@@ -444,7 +451,6 @@
 
             if (!dog.logs) dog.logs = [];
 
-            // Remove any existing log for this date + meal
             dog.logs = dog.logs.filter(l => !(l.date === date && l.mealPeriod === meal));
 
             dog.logs.push({
@@ -452,7 +458,7 @@
                 timestamp: new Date().toISOString(),
                 mealPeriod: meal,
                 amountEaten: amount,
-                fresh: false,
+                fresh: dog.prefersFreshFood,
                 notes: ''
             });
 
@@ -465,24 +471,28 @@
             const dog = dogs.find(d => d.id === dogId);
             if (!dog) return;
 
+            // Update the persistent preference
+            dog.prefersFreshFood = isFresh;
+
             const date = document.getElementById('log-date').value;
             const meal = currentMealPeriod;
 
             if (!dog.logs) dog.logs = [];
 
+            // Also update today's log if it exists, or create one
             let existing = dog.logs.find(l => l.date === date && l.mealPeriod === meal);
-            if (!existing) {
-                existing = {
+            if (existing) {
+                existing.fresh = isFresh;
+            } else {
+                // Create a minimal log so history shows it
+                dog.logs.push({
                     date: date,
                     timestamp: new Date().toISOString(),
                     mealPeriod: meal,
                     amountEaten: 'Some',
                     fresh: isFresh,
                     notes: ''
-                };
-                dog.logs.push(existing);
-            } else {
-                existing.fresh = isFresh;
+                });
             }
 
             saveData();
@@ -586,7 +596,8 @@
                 };
             });
 
-            document.getElementById('fresh-food-toggle').checked = todayLog ? todayLog.fresh : false;
+            // Pre-fill fresh based on persistent preference
+            document.getElementById('fresh-food-toggle').checked = dog.prefersFreshFood;
             document.getElementById('log-notes').value = todayLog ? (todayLog.notes || '') : '';
 
             document.getElementById('log-modal').classList.remove('hidden');
@@ -620,6 +631,9 @@
                 fresh: fresh,
                 notes: notes
             });
+
+            // Also update the persistent preference when saving from modal
+            dog.prefersFreshFood = fresh;
 
             saveData();
             closeLogModal();

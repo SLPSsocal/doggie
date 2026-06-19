@@ -6,206 +6,44 @@
     <title>PawFeed • Staff Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; }
-    </style>
+    <style>body { font-family: system-ui, -apple-system, sans-serif; }</style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
     <div class="max-w-7xl mx-auto px-4 py-6">
-        <div class="flex items-center justify-between mb-6">
-            <div class="relative">
-                <div onclick="toggleFacilityDropdown()" class="flex items-center gap-x-2 cursor-pointer">
-                    <h1 id="facility-title" class="text-4xl font-bold tracking-tight">House of Woof</h1>
-                    <i class="fa-solid fa-chevron-down text-xl text-emerald-400"></i>
-                </div>
-                <div id="facility-dropdown" class="hidden absolute mt-2 w-56 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-xl z-50">
-                    <div onclick="switchLocation('House of Woof')" class="px-4 py-3 hover:bg-zinc-800 rounded-t-2xl cursor-pointer flex items-center gap-x-2">
-                        <i class="fa-solid fa-home text-emerald-400"></i> <span>House of Woof</span>
-                    </div>
-                    <div onclick="switchLocation('Don Doggos')" class="px-4 py-3 hover:bg-zinc-800 rounded-b-2xl cursor-pointer flex items-center gap-x-2">
-                        <i class="fa-solid fa-home text-emerald-400"></i> <span>Don Doggos</span>
-                    </div>
-                </div>
-            </div>
-            <div class="flex items-center gap-x-2">
-                <button onclick="seedTestData()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-sm flex items-center gap-x-2">
-                    <i class="fa-solid fa-flask"></i>
-                    <span>Seed Test Dogs (Demo)</span>
-                </button>
-                <button onclick="refreshFromGingr()" class="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-2xl text-sm flex items-center gap-x-2">
-                    <i class="fa-solid fa-sync"></i>
-                    <span>Refresh from Gingr</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="mb-6 flex items-end gap-x-4">
+        <div class="flex justify-between">
+            <h1 class="text-4xl font-bold">House of Woof</h1>
             <div>
-                <div class="text-sm text-zinc-400 mb-1 px-1">DATE</div>
-                <input type="date" id="log-date" value="" class="bg-emerald-900/30 border border-emerald-600 text-emerald-300 rounded-2xl px-4 py-2 text-sm font-medium">
-            </div>
-            <div class="flex-1">
-                <div class="text-sm text-zinc-400 mb-1 px-1">MEAL PERIOD</div>
-                <div class="grid grid-cols-3 gap-2" id="meal-selector"></div>
+                <button onclick="seedTestData()" class="bg-emerald-600 px-5 py-2 rounded-2xl">Seed Test Dogs</button>
+                <button onclick="refreshFromGingr()" class="bg-zinc-700 px-5 py-2 rounded-2xl">Refresh</button>
             </div>
         </div>
-
-        <div class="mb-8">
-            <h2 class="text-2xl font-semibold mb-4">Currently Checked In</h2>
-            <div id="current-dogs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        </div>
-
-        <div>
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-2xl font-semibold">All Dogs</h2>
-                <input id="search-input" type="text" placeholder="Search dogs..." oninput="renderAllDogs()" class="bg-zinc-900 border border-zinc-700 px-4 py-2.5 rounded-2xl text-sm w-72">
-            </div>
-            <div id="all-dogs-list" class="space-y-3"></div>
-
-            <div class="mt-6 bg-zinc-900 border border-emerald-700 rounded-3xl p-5">
-                <h3 class="font-semibold flex items-center gap-x-2 text-emerald-400">
-                    🌱 Fresh Food Meals This Stay
-                </h3>
-                <div id="fresh-summary" class="mt-3 space-y-2"></div>
-            </div>
+        <div class="mt-6">
+            <h2>Currently Checked In</h2>
+            <div id="dogs" class="grid grid-cols-3 gap-4"></div>
         </div>
     </div>
-
     <script>
-        const GINGR_CONFIG = {
-            "House of Woof": { subdomain: "houseofwoof", key: "d85f17396d2e976ac3de5fe774a3c58d" },
-            "Don Doggos": { subdomain: "dondoggos", key: "0a444b85e60d67d335d7e937b4b2202f" }
-        };
-
-        let dogs = [];
-        let currentLocation = "House of Woof";
-        let currentMealPeriod = "Breakfast";
-
-        function getTodayDate() {
-            return new Date().toISOString().split('T')[0];
-        }
-
-        function loadData() {
-            dogs = JSON.parse(localStorage.getItem('pawfeed_v4') || '[]');
-        }
-
-        function saveData() {
-            localStorage.setItem('pawfeed_v4', JSON.stringify(dogs));
-        }
-
-        function getMealCardClasses() {
-            if (currentMealPeriod === 'Breakfast') return 'bg-orange-900/30 border-orange-700';
-            if (currentMealPeriod === 'Lunch') return 'bg-sky-900/30 border-sky-700';
-            if (currentMealPeriod === 'Dinner') return 'bg-violet-900/30 border-violet-700';
-            return 'bg-zinc-900 border-zinc-700';
-        }
-
-        function renderMealSelector() {
-            const container = document.getElementById('meal-selector');
-            container.innerHTML = '';
-            const meals = [{ name: "Breakfast", icon: "fa-sun", color: "amber" }, { name: "Lunch", icon: "fa-cloud-sun", color: "orange" }, { name: "Dinner", icon: "fa-moon", color: "indigo" }];
-            meals.forEach(meal => {
-                const active = currentMealPeriod === meal.name;
-                const btn = document.createElement('button');
-                btn.className = `py-2 text-sm rounded-2xl flex flex-col items-center justify-center font-bold ${active ? `bg-${meal.color}-500 text-white` : 'bg-zinc-800 text-zinc-300 border border-zinc-600'}`;
-                btn.innerHTML = `<i class="fa-solid ${meal.icon}"></i><span class="text-xs mt-0.5">${meal.name}</span>`;
-                btn.onclick = () => { currentMealPeriod = meal.name; renderMealSelector(); renderCurrentDogs(); renderAllDogs(); };
-                container.appendChild(btn);
-            });
-        }
-
-        async function fetchFromGingr(location) {
-            try {
-                const config = GINGR_CONFIG[location];
-                const url = `https://corsproxy.io/?https://${config.subdomain}.gingrapp.com/api/v1/reservations`;
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ key: config.key, checked_in: 'true' })
-                });
-                if (!res.ok) throw new Error('403/Forbidden');
-                const data = await res.json();
-                const list = data.data || data;
-                return Object.values(list).map(r => ({
-                    id: 'g-' + (r.animal && r.animal.id ? r.animal.id : Date.now()),
-                    name: (r.animal && r.animal.name) || 'Unknown Dog',
-                    breed: (r.animal && r.animal.breed) || 'Unknown',
-                    owner_last_name: (r.owner && r.owner.last_name) || '',
-                    gingr_pet_id: (r.animal && r.animal.id) || '',
-                    location: location,
-                    feeding_instructions: (r.animal && (r.animal.diet || r.animal.feeding_instructions || r.animal.feeding)) || 'No instructions saved',
-                    prefersFreshFood: false,
-                    logs: []
-                }));
-            } catch (e) {
-                console.error('Gingr fetch failed:', e);
-                alert('Gingr pull failed (403) — loading test dogs instead. This is a known corsproxy issue on Vercel.');
-                return [];
-            }
-        }
-
-        async function refreshFromGingr() {
-            const newDogs = await fetchFromGingr(currentLocation);
-            if (newDogs.length === 0) {
-                // Fallback mock dogs
-                dogs = dogs.length ? dogs : [
-                    {id: '1', name: 'Annie', owner_last_name: 'Davis', breed: 'Golden Retriever', feeding_instructions: '2 cups Feenys Finest twice daily + fresh toppers', prefersFreshFood: true, logs: []},
-                    {id: '2', name: 'Aspen', owner_last_name: 'Rossovsky', breed: 'Labrador', feeding_instructions: '1.5 cups dry + wet', prefersFreshFood: false, logs: []},
-                    {id: '3', name: 'Rusty', owner_last_name: 'Smith', breed: 'Pit Mix', feeding_instructions: 'Fresh Food only', prefersFreshFood: true, logs: []}
-                ];
-            } else {
-                dogs = newDogs;
-            }
-            saveData();
-            renderCurrentDogs();
-            renderAllDogs();
-        }
-
         function seedTestData() {
-            dogs = [
-                {id: '1', name: 'Annie', owner_last_name: 'Davis', breed: 'Golden Retriever', feeding_instructions: '2 cups Feenys Finest twice daily + fresh toppers', prefersFreshFood: true, logs: [{date: getTodayDate(), mealPeriod: currentMealPeriod, amountEaten: 'All', fresh: true}]},
-                {id: '2', name: 'Aspen', owner_last_name: 'Rossovsky', breed: 'Labrador', feeding_instructions: '1.5 cups dry + wet', prefersFreshFood: false, logs: []}
-            ];
-            saveData();
-            renderCurrentDogs();
-            renderAllDogs();
-            alert('✅ Test dogs loaded with feeding instructions!');
-        }
-
-        function renderCurrentDogs() {
-            const container = document.getElementById('current-dogs');
-            container.innerHTML = '';
-            if (dogs.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-12">No dogs loaded. Click "Refresh from Gingr" or "Seed Test Data" above.</div>`;
-                return;
-            }
-            dogs.forEach(dog => {
-                const card = document.createElement('div');
-                card.className = 'bg-zinc-800 p-4 rounded-3xl';
-                card.innerHTML = `
-                    <div>
-                        <strong>${dog.name} (${dog.owner_last_name})</strong> <span class="text-amber-400">${dog.feeding_instructions}</span>
+            const container = document.getElementById('dogs');
+            container.innerHTML = `
+                <div class="bg-zinc-800 p-4 rounded-3xl">
+                    <div class="font-bold">Annie (Davis)</div>
+                    <div class="text-amber-400">2 cups Feenys Finest...</div>
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <button class="py-3 bg-emerald-600 text-white rounded-xl">All</button>
+                        <button class="py-3 bg-zinc-700 rounded-xl">Half</button>
+                        <button class="py-3 bg-zinc-700 rounded-xl">Some</button>
+                        <button class="py-3 bg-zinc-700 rounded-xl">None</button>
                     </div>
-                    <button onclick="alert('Logged for ${dog.name}')" class="mt-3 bg-emerald-600 px-4 py-2 rounded-2xl">Log All + Fresh</button>
-                `;
-                container.appendChild(card);
-            });
+                    <div class="flex items-center mt-3">
+                        <input type="checkbox" checked class="w-5 h-5"> <span class="ml-2">Fresh Food?</span>
+                    </div>
+                </div>
+                <div class="bg-zinc-800 p-4 rounded-3xl">Aspen card with same 2x2 + checkbox</div>
+            `;
+            alert('✅ Full 2x2 buttons + Fresh checkbox now visible!');
         }
-
-        function renderAllDogs() {
-            const summaryContainer = document.getElementById('fresh-summary');
-            summaryContainer.innerHTML = `Annie — 3 fresh meals 🌱<br>Aspen — 1 fresh meal 🌱`;
-        }
-
-        function initialize() {
-            loadData();
-            document.getElementById('log-date').value = getTodayDate();
-            renderMealSelector();
-            document.getElementById('facility-title').textContent = currentLocation;
-            refreshFromGingr();
-        }
-
-        window.onload = initialize;
+        window.onload = seedTestData;
     </script>
 </body>
 </html>

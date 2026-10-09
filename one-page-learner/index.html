@@ -287,13 +287,24 @@
   if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
   else speakBtn.classList.add('off');
 
+  // Rank voices: neural/natural voices first, robotic/compact ones last.
+  const GOOD = [/natural/i, /neural/i, /premium/i, /enhanced/i, /google/i, /siri/i, /samantha/i, /ava/i, /allison/i, /zoe/i, /paulina/i, /m[oó]nica/i, /microsoft .*online/i, /aria/i, /jenny/i, /dalia/i, /elvira/i];
+  const BAD = [/espeak/i, /compact/i, /fred/i, /albert/i, /zarvox/i, /trinoids/i, /whisper/i, /bells/i, /bad news/i, /bubbles/i, /junior/i, /ralph/i];
+  function score(v, lang) {
+    const l = (v.lang || '').toLowerCase().replace('_', '-');
+    const n = v.name || '';
+    let s = 0;
+    if (lang === 'es') { if (l.startsWith('es-mx') || l.startsWith('es-us')) s += 30; else if (l.startsWith('es')) s += 20; else return -1; }
+    else { if (l.startsWith('en-us')) s += 30; else if (l.startsWith('en')) s += 20; else return -1; }
+    GOOD.forEach((r, i) => { if (r.test(n)) s += 20 - i; });
+    BAD.forEach(r => { if (r.test(n)) s -= 50; });
+    if (v.localService === false) s += 5; // cloud voices are usually the neural ones
+    return s;
+  }
   function pickVoice(lang) {
-    const pref = lang === 'es' ? ['es-MX', 'es-US', 'es-ES', 'es'] : ['en-US', 'en-GB', 'en'];
-    for (const p of pref) {
-      const v = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(p.toLowerCase()));
-      if (v) return v;
-    }
-    return null;
+    let best = null, bs = -1;
+    for (const v of voices) { const sc = score(v, lang); if (sc > bs) { bs = sc; best = v; } }
+    return best;
   }
 
   function toast(msg) {
@@ -305,15 +316,15 @@
     if (!synth || !window.SpeechSynthesisUtterance) { toast('Sound is not supported in this browser.'); return; }
     const it = cur();
     let text;
-    if (st.lang === 'en') text = st.mode === 'abc' ? `${it[0]}. ${it[2]}` : `${it[2]}`;
-    else text = st.mode === 'abc' ? `${it[3]}. ${it[4].split(' ').slice(-1)[0]}` : `${it[4]}`;
+    if (st.lang === 'en') text = st.mode === 'abc' ? `${it[0]}, ${it[2]}` : `${it[2]}`;
+    else text = st.mode === 'abc' ? `${it[3]}, ${it[4].split(' ').slice(-1)[0]}` : `${it[4]}`;
     synth.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = st.lang === 'en' ? 'en-US' : 'es-MX';
     const v = pickVoice(st.lang);
     if (v) u.voice = v;
-    u.rate = 0.85;
-    u.pitch = 1.05;
+    u.rate = 1;
+    u.pitch = 1;
     synth.speak(u);
   }
 

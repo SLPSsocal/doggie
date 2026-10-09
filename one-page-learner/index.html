@@ -106,29 +106,40 @@
 
   .card {
     display: grid;
-    grid-template-rows: 1fr auto auto auto;
+    grid-template-rows: 1fr auto auto;
     align-items: center;
     justify-items: center;
     min-height: 0;
     padding: 0 8px 28px;
     gap: 6px;
   }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    justify-items: center;
+    width: 100%;
+    min-height: 0;
+    gap: 2vw;
+  }
   .glyph {
-    font-size: min(36vh, 28vw);
+    font-size: min(40vh, 18vw);
     line-height: 1;
     color: var(--glyph, var(--accent));
     letter-spacing: -0.02em;
+    white-space: nowrap;
     transition: transform .15s ease;
   }
-  .glyph.pop { transform: scale(1.08); }
+  .glyph .lc { font-size: .78em; margin-left: .08em; }
+  .glyph.pop { transform: scale(1.06); }
   .pic {
-    font-size: min(14vh, 12vw);
+    font-size: min(30vh, 18vw);
     line-height: 1.15;
     text-align: center;
     max-width: 100%;
     word-break: break-word;
   }
-  .pic.many { font-size: min(9vh, 7vw); letter-spacing: 0.04em; }
+  .pic.many { font-size: min(11vh, 5.5vw); letter-spacing: 0.04em; line-height: 1.2; }
   .label {
     font-size: clamp(22px, 4vh, 40px);
     color: var(--muted);
@@ -190,8 +201,10 @@
 <main id="stage">
   <button class="arrow" id="prev" aria-label="Previous">‹</button>
   <div class="card" id="card">
-    <div class="glyph" id="glyph">A</div>
-    <div class="pic" id="pic">🐊</div>
+    <div class="row">
+      <div class="glyph" id="glyph">A<span class="lc">a</span></div>
+      <div class="pic" id="pic">🐊</div>
+    </div>
     <div class="label" id="label">alligator</div>
     <button class="speak" id="speak" aria-label="Say it">🔊</button>
   </div>
@@ -261,6 +274,7 @@
   function render() {
     const it = cur();
     glyph.textContent = it[0];
+    if (st.mode === 'abc') { const lc = document.createElement('span'); lc.className = 'lc'; lc.textContent = it[0].toLowerCase(); glyph.appendChild(lc); }
     glyph.style.setProperty('--glyph', COLORS[st.i[st.mode] % COLORS.length]);
     pic.textContent = it[1];
     pic.classList.toggle('many', st.mode === '123' && st.i[st.mode] >= 5);

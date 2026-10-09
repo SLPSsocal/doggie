@@ -140,6 +140,7 @@
     word-break: break-word;
   }
   .pic.many { font-size: min(11vh, 5.5vw); letter-spacing: 0.04em; line-height: 1.2; }
+  .label .on { color: var(--fg); }
   .label {
     font-size: clamp(22px, 4vh, 40px);
     color: var(--muted);
@@ -278,7 +279,10 @@
     glyph.style.setProperty('--glyph', COLORS[st.i[st.mode] % COLORS.length]);
     pic.textContent = it[1];
     pic.classList.toggle('many', st.mode === '123' && st.i[st.mode] >= 5);
-    label.textContent = st.lang === 'en' ? it[2] : it[4];
+    label.innerHTML = '';
+    const a = document.createElement('span'); a.textContent = it[2]; a.className = st.lang === 'en' ? 'on' : '';
+    const b = document.createElement('span'); b.textContent = it[4]; b.className = st.lang === 'es' ? 'on' : '';
+    label.append(a, document.createTextNode(' · '), b);
     glyph.classList.add('pop');
     setTimeout(() => glyph.classList.remove('pop'), 150);
     document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === st.mode));
@@ -299,7 +303,6 @@
   let voices = [];
   function loadVoices() { if (synth) voices = synth.getVoices(); }
   if (synth) { loadVoices(); synth.onvoiceschanged = loadVoices; }
-  else speakBtn.classList.add('off');
 
   // Rank voices: neural/natural voices first, robotic/compact ones last.
   const GOOD = [/natural/i, /neural/i, /premium/i, /enhanced/i, /google/i, /siri/i, /samantha/i, /ava/i, /allison/i, /zoe/i, /paulina/i, /m[oó]nica/i, /microsoft .*online/i, /aria/i, /jenny/i, /dalia/i, /elvira/i];
@@ -326,8 +329,20 @@
     clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2500);
   }
 
+  let player = null;
   function speak() {
-    if (!synth || !window.SpeechSynthesisUtterance) { toast('Sound is not supported in this browser.'); return; }
+    const it = cur();
+    const key = st.mode === 'abc' ? it[0] : it[0];
+    if (synth) synth.cancel();
+    if (player) { player.pause(); player = null; }
+    const a = new Audio(`audio/${st.lang}/${key}.mp3?v=2`);
+    player = a;
+    const p = a.play();
+    if (p && p.catch) p.catch(() => speakTTS());
+    a.onerror = () => speakTTS();
+  }
+  function speakTTS() {
+    if (!synth || !window.SpeechSynthesisUtterance || !voices.length) { toast('Sound is not supported in this browser.'); return; }
     const it = cur();
     let text;
     if (st.lang === 'en') text = st.mode === 'abc' ? `${it[0]}, ${it[2]}` : `${it[2]}`;
@@ -337,12 +352,9 @@
     u.lang = st.lang === 'en' ? 'en-US' : 'es-MX';
     const v = pickVoice(st.lang);
     if (v) u.voice = v;
-    u.rate = 1;
-    u.pitch = 1;
     synth.speak(u);
   }
 
-  // ---------- events ----------
   $('prev').addEventListener('click', () => step(-1));
   $('next').addEventListener('click', () => step(1));
   speakBtn.addEventListener('click', speak);
